@@ -1,0 +1,15 @@
+- put all code on GitHub
+- make everything parameterized instead of hard coded
+- make a dynamic system
+- add combat system
+- add dungeon system
+	- barrier cannot pass
+- visuals and graphics
+- as characters get harder they become more detailed
+- make the enemies move
+- Gantt Chart
+- smooth out movement
+- add chests
+- health system / mana system
+- make a system for weapons and damage
+- make a system for enemies attacking

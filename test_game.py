@@ -21,7 +21,7 @@ shield_button_image = pygame.image.load('shield_button.png').convert_alpha()
 player_combat_image = pygame.image.load('player_combat.png').convert_alpha()
 goblin_combat_image = pygame.image.load('goblin_combat.png').convert_alpha()
 
-class Sprite(pygame.sprite.Sprite):
+class Player(pygame.sprite.Sprite):
     def __init__(self, pos, image):
         super().__init__()
         self.image = image
@@ -39,44 +39,85 @@ class Sprite(pygame.sprite.Sprite):
     def moveBack(self, speed):
         self.rect.y -= speed * speed/15
 
-#How this works:
-#Make a function in the click functions section, ex on_click()
-#Make a clickableSprite with all sprite arguments and on_click at the end
-#Runs your function when you click it
-class clickableSprite(Sprite):
-    def __init__(self,pos,image,callback):
-        super().__init__(pos,image)
+    def spell(self):
+        ""
+        
+    def attack(self):
+        ""
+
+    def block(self):
+        ""
+
+
+class Enemy(pygame.sprite.Sprite):
+    def __init__(self,pos,image):
+        super().__init__()
+        self.image = image
+        self.rect = self.image.get_rect(center=pos)
+
+    def movement(self):
+        ""
+
+    def combat(self,attacks):
+        #choice = random.randint(1,10)
+        choice = 7
+        if(choice < 3):  #block
+            ''
+        elif(choice < 5): #spell
+            ""
+        else: #attack
+            attack_mode = random.randint(1,10)
+
+            if(attack_mode < 3): #heavy attack
+                return(attacks[0])
+            else: #light attack
+                return(attacks[1])
+            
+    
+    
+
+
+class Interactable(pygame.sprite.Sprite):
+    def __init__(self,pos,image, callback):
+        super().__init__()
+        self.image = image
+        self.rect = self.image.get_rect(center=pos)
         self.callback = callback
 
-    def update(self, events):
+    def update(self,events):
         for event in events:
             if event.type == pygame.MOUSEBUTTONUP:
                 if self.rect.collidepoint(event.pos):
                     self.callback()
 
-#click functions
+    
+
+class Terrain(pygame.sprite.Sprite):
+    def __init__(self,pos,image):
+        super().__init__()
+        self.image = image
+        self.rect = self.image.get_rect(center=pos)
 
 def on_click():
-    pygame.quit()
-
+    print("Clicked")
 
 player_sprites_list = pygame.sprite.Group()
 enemy_sprites_list = pygame.sprite.Group()
 menu_sprites_list = pygame.sprite.Group()
 terrain_sprites_list = pygame.sprite.Group()
 
-player = Sprite((200,300), player_image)
-goblin1 = Sprite((400, 500), goblin_image)
-goblin2 = Sprite((100, 800), goblin_image)
-magicGoblin = Sprite((600,600), magic_goblin_image)
+player = Player((200,300), player_image)
+goblin1 = Enemy((400, 500), goblin_image)
+goblin2 = Enemy((100, 800), goblin_image)
+magicGoblin = Enemy((600,600), magic_goblin_image)
 
-menu = clickableSprite((960,880), menu_image, on_click)
-attack = clickableSprite((350, 880), attack_button_image, on_click)
-spell = clickableSprite((850, 880), spell_button_image, on_click)
-shield = clickableSprite((1350, 880), shield_button_image, on_click)
+menu = Interactable((960,880), menu_image, on_click)
+attack = Interactable((350, 880), attack_button_image, on_click)
+spell = Interactable((850, 880), spell_button_image, on_click)
+shield = Interactable((1350, 880), shield_button_image, on_click)
 
-player_combat = Sprite((250, 500), player_combat_image)
-goblin_combat = Sprite((1250, 500) , goblin_combat_image)
+player_combat = Player((250, 500), player_combat_image)
+goblin_combat = Enemy((1250, 500) , goblin_combat_image)
 
 player_sprites_list.add(player)
 enemy_sprites_list.add(goblin1)
@@ -90,7 +131,7 @@ clock = pygame.time.Clock()
 
 while exit:
     events = pygame.event.get()
-    for event in events():
+    for event in events:
         if event.type == pygame.QUIT:
             exit = False
         elif event.type == pygame.KEYDOWN:
@@ -115,6 +156,8 @@ while exit:
                 enemy_sprites_list.empty()
                 player_sprites_list.empty()
                 combat_state = True
+
+                
     if combat_state == True:
         menu_sprites_list.add(menu)
         menu_sprites_list.add(attack)
@@ -123,9 +166,15 @@ while exit:
         player_sprites_list.add(player_combat)
         enemy_sprites_list.add(goblin_combat)
 
+        damage = int(goblin1.combat((6,2)))
+
+        health = 10
+        health -= damage
+
+
     player_sprites_list.update()
     enemy_sprites_list.update()
-    menu_sprites_list.update(events) #For clickables
+    menu_sprites_list.update(events)
     terrain_sprites_list.update()
     screen.fill(SURFACE_COLOR)
     player_sprites_list.draw(screen)
@@ -135,5 +184,5 @@ while exit:
     pygame.display.flip()
     clock.tick(60)
 
-
+print(health)
 pygame.quit()

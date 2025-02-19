@@ -40,13 +40,13 @@ class Player(pygame.sprite.Sprite):
         self.rect.y -= speed * speed/15
 
     def spell(self):
-        ""
+        print("Cast Spell")
         
     def attack(self):
-        ""
+        print("Attack")
 
     def block(self):
-        ""
+        print("Block")
 
 
 class Enemy(pygame.sprite.Sprite):
@@ -79,7 +79,7 @@ class Enemy(pygame.sprite.Sprite):
 
 class Interactable(pygame.sprite.Sprite):
     def __init__(self,pos,image, callback):
-        super().__init__()
+        super().__init__()  
         self.image = image
         self.rect = self.image.get_rect(center=pos)
         self.callback = callback
@@ -99,7 +99,7 @@ class Terrain(pygame.sprite.Sprite):
         self.rect = self.image.get_rect(center=pos)
 
 def on_click():
-    print("Clicked")
+    ''
 
 player_sprites_list = pygame.sprite.Group()
 enemy_sprites_list = pygame.sprite.Group()
@@ -112,9 +112,9 @@ goblin2 = Enemy((100, 800), goblin_image)
 magicGoblin = Enemy((600,600), magic_goblin_image)
 
 menu = Interactable((960,880), menu_image, on_click)
-attack = Interactable((350, 880), attack_button_image, on_click)
-spell = Interactable((850, 880), spell_button_image, on_click)
-shield = Interactable((1350, 880), shield_button_image, on_click)
+attack = Interactable((350, 880), attack_button_image, player.attack)
+spell = Interactable((850, 880), spell_button_image, player.spell)
+shield = Interactable((1350, 880), shield_button_image, player.block)
 
 player_combat = Player((250, 500), player_combat_image)
 goblin_combat = Enemy((1250, 500) , goblin_combat_image)

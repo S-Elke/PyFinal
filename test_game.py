@@ -153,7 +153,7 @@ class Action:
 
 
 def attack(entity, val):
-    entity.increment_health(val)
+    entity.increment_health(-val)
 
 
 # goblin_attack = attack(player,
@@ -191,11 +191,11 @@ class Enemy(pygame.sprite.Sprite):
             self.visible = False
 
     def intent(self, player):
-        random_action = self.actions[random.randint(1, len(self.actions))]
+        random_action = self.actions[random.randint(0, -1+len(self.actions))]
         self.current_action = random_action
 
     def act(self, player):
-        self.current_action.action()
+        self.current_action()
 
     def enter_combat(self):
         self.image = scale_image(self.image, 2)
@@ -245,7 +245,7 @@ class Interactable(pygame.sprite.Sprite):
                         self.pressed = True
 
 
-# callable enemy attacks
+
 
 
 class Terrain(pygame.sprite.Sprite):
@@ -282,16 +282,21 @@ player = Player((150, 600), player_image)
 player.flip_sprite()
 exit_zone = pygame.Rect(WIDTH // 2 - 50, 0, 100, 50)
 
-goblin = Enemy((225, 250), goblin_image, [attack(player, 5)])
-goblin2 = Enemy((450,700), goblin_image, [attack(player, 5)])
-buff_goblin = Enemy((1500, 600), buff_goblin_image, [attack(player, 5)])
-boss = Enemy((0,0), boss, [attack(player, 5)])
-magicGoblin = Enemy((825,350), magic_goblin_image, [attack(player, 5)])
+# callable enemy attacks
+def goblin_attack():
+    global player
+    attack(player, 5)
 
-menu = Interactable((1675, 300), menu_image, on_click, clickable=False)
-attack = Interactable((1675, 150), attack_button_image, player.attack)
-spell = Interactable((1675, 300), spell_button_image, player.spell)
-shield = Interactable((1675, 450), shield_button_image, player.block)
+goblin = Enemy((225, 250), goblin_image, [goblin_attack])
+goblin2 = Enemy((450,700), goblin_image, [goblin_attack])
+buff_goblin = Enemy((1500, 600), buff_goblin_image, [goblin_attack])
+boss = Enemy((0,0), boss, [goblin_attack])
+magicGoblin = Enemy((825,350), magic_goblin_image, [goblin_attack])
+
+menu_bar = Interactable((1675, 300), menu_image, on_click, clickable=False)
+attack_button = Interactable((1675, 150), attack_button_image, player.attack)
+spell_button = Interactable((1675, 300), spell_button_image, player.spell)
+shield_button = Interactable((1675, 450), shield_button_image, player.block)
 
 fireball = Terrain((0, 0), fireball_image)
 lightning = Terrain((0, 0), lightning_image)
@@ -411,10 +416,10 @@ while exit:
 
     if combat_state == True:
         screen.blit(combat_background, (0,0))
-        menu_sprites_list.add(menu)
-        menu_sprites_list.add(attack)
-        menu_sprites_list.add(spell)
-        menu_sprites_list.add(shield)
+        menu_sprites_list.add(menu_bar)
+        menu_sprites_list.add(attack_button)
+        menu_sprites_list.add(spell_button)
+        menu_sprites_list.add(shield_button)
         enemy_sprites_list.empty()
         for enemy in enemy_object_list:
             if enemy.visible:
@@ -423,6 +428,7 @@ while exit:
         if combat_turn == "Start":
             player.enter_combat()
             for enemy in enemy_object_list:
+                enemy.intent(player)
                 enemy.enter_combat()
             combat_turn = "Player"
         elif combat_turn == "Player":
@@ -433,15 +439,21 @@ while exit:
                 elif keys[pygame.K_a]:
                     target = (target - 1) % len(enemy_object_list)
             elif player.action == "Attack":
-                attack(enemy_object_list[target], -player.attack_strength)
+                attack(enemy_object_list[target], player.attack_strength)
                 attack_timer.start()
-                player.action = "None"
+                player.action = ""
             elif player.action == "Defend":
                 player.defense += player.armor
         elif combat_turn == "Enemy":
             for enemy in enemy_object_list:
                 enemy.act(player)
                 enemy.intent(player)
+                combat_turn = "End Step"
+        elif combat_turn == "End Step":
+            print("Player hp:", player.health)
+            for enemy in enemy_object_list:
+                print("Enemy hp:", enemy.health)
+            combat_turn = "Player"
 
 
 

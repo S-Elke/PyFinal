@@ -10,6 +10,16 @@ pygame.init()
 size = (WIDTH, HEIGHT)
 screen = pygame.display.set_mode(size)
 pygame.display.set_caption("Test Game")
+font = pygame.font.Font(None, 36)
+# Load dungeon backgrounds
+dungeon_1 = pygame.image.load("Dungeon 1.1.png").convert()
+dungeon_2 = pygame.image.load("Dungeon 3.png").convert()
+dungeon_images = [dungeon_1, dungeon_2,]
+current_dungeon = 0
+room_complete = False
+game_over = False
+
+exit_zone = pygame.Rect(0, 0, 0, 0)
 
 goblin_image = pygame.image.load('goblin.png').convert_alpha()
 magic_goblin_image = pygame.image.load('magic_goblin.png').convert_alpha()
@@ -59,7 +69,7 @@ class Player(pygame.sprite.Sprite):
     def increment_health(self, num):
         self.health += num
         if self.health <= 0:
-            self.visible = False;
+            self.visible = False
 
     def enter_combat(self):
         self.position = self.rect
@@ -195,9 +205,6 @@ class Interactable(pygame.sprite.Sprite):
 #callable enemy attacks
 
 
-
-    
-
 class Terrain(pygame.sprite.Sprite):
     def __init__(self,pos,image):
         super().__init__()
@@ -212,7 +219,15 @@ enemy_sprites_list = pygame.sprite.Group()
 menu_sprites_list = pygame.sprite.Group()
 terrain_sprites_list = pygame.sprite.Group()
 
+def reset_room():
+    global enemies_remaining, room_complete
+    enemies_remaining = 3
+    room_complete = False
+    player.rect.x, player.rect.y = 200, 300
+
+
 player = Player((200,300), player_image, player_combat_image)
+exit_zone = pygame.Rect(WIDTH // 2 - 50, 0, 100, 50)
 goblin1 = Enemy((400, 500), goblin_image, [attack(player, 5)])
 goblin2 = Enemy((100, 800), goblin_image, [attack(player, 5)])
 magicGoblin = Enemy((600,600), magic_goblin_image, [attack(player, 5)])
@@ -236,13 +251,14 @@ exit = True
 combat_state = False
 clock = pygame.time.Clock()
 combat_turn = "Start"
-
+enemies_remaining = 3
 
 def end_player_turn():
     global combat_turn
     print("Callback ran")
     if combat_turn == "Player":
         combat_turn = "Enemy"
+
 attack_timer = timer(2, end_player_turn)
 
 while exit:
@@ -254,9 +270,11 @@ while exit:
             if event.key == pygame.K_x:
                 exit = False
 
+    # Background draw (first!)
+    screen.blit(dungeon_images[current_dungeon], (0, 0))
+
     if combat_state == False:
         keys = pygame.key.get_pressed()
-
 
         if keys[pygame.K_a]:
             player.moveLeft(8.5)
@@ -268,63 +286,87 @@ while exit:
             player.moveBack(8.5)
 
         for each in enemy_sprites_list.sprites():
-            if((each.rect.x-50 < player.rect.x < each.rect.x+50) and (each.rect.y-50 < player.rect.y < each.rect.y+50)):
+            if ((each.rect.x - 50 < player.rect.x < each.rect.x + 50) and
+                (each.rect.y - 50 < player.rect.y < each.rect.y + 50)):
                 enemy_sprites_list.empty()
                 combat_state = True
 
-                
     if combat_state == True:
         menu_sprites_list.add(menu_bar)
         menu_sprites_list.add(attack_button)
         menu_sprites_list.add(spell_button)
         menu_sprites_list.add(shield_button)
         enemy_object_list.append(goblin_combat)
+        enemy_sprites_list.empty()
         for enemy in enemy_object_list:
-            enemy_sprites_list.empty()
-            if enemy.visible == True:
+            if enemy.visible:
                 enemy_sprites_list.add(enemy)
+
         if combat_turn == "Start":
             player.enter_combat()
             for enemy in enemy_object_list:
                 enemy.enter_combat()
             combat_turn = "Player"
-        elif combat_turn == "Player": #need to add "None" reset
+        elif combat_turn == "Player":
             if player.action == "None":
-                target = 0;
+                target = 0
                 if keys[pygame.K_d]:
-                    target += 1
-                    if target >= len(enemy_object_list):
-                        target = 0
+                    target = (target + 1) % len(enemy_object_list)
                 elif keys[pygame.K_a]:
-                    target -= 1
-                    if target < 0:
-                        target = len(enemy_object_list) - 1
-                #selector.position = enemy
+                    target = (target - 1) % len(enemy_object_list)
             elif player.action == "Attack":
                 attack(enemy_object_list[target], -player.attack_strength)
                 attack_timer.start()
                 player.action = "None"
             elif player.action == "Defend":
-                player.defense += player.armor #need to add a turn reset
+                player.defense += player.armor
         elif combat_turn == "Enemy":
             for enemy in enemy_object_list:
                 enemy.act(player)
                 enemy.intent(player)
-                
 
+        if all(not enemy.visible for enemy in enemy_object_list):
+            print("Room cleared!")
+            enemy_object_list.clear()
+            menu_sprites_list.empty()
+            combat_state = False
+            room_complete = True
 
+    # 🟨 Update exit zone dynamically based on dungeon
+    if current_dungeon == 0:
+        exit_zone = pygame.Rect(WIDTH // 2 - 50, 0, 100, 50)  # Top-middle
+    elif current_dungeon == 1:
+        exit_zone = pygame.Rect(WIDTH // 2 - 50, HEIGHT - 50, 100, 50)  # Bottom-middle
+
+    # ✅ Show room cleared message
+    if room_complete and not game_over:
+        text = font.render("Room Cleared! Go to the exit to continue...", True, (255, 255, 255))
+        screen.blit(text, (400, 1000))
+
+    # 🚪 Check if player leaves room
+    if player.rect.colliderect(exit_zone) and room_complete:
+        current_dungeon += 1
+        if current_dungeon >= len(dungeon_images):
+            print("Game Over – You Win!")
+            exit = False
+        else:
+            reset_room()
+
+    # 🎮 Update & draw everything
     player_sprites_list.update()
     enemy_sprites_list.update()
     menu_sprites_list.update(events)
     terrain_sprites_list.update()
-    screen.fill(SURFACE_COLOR)
+
     player_sprites_list.draw(screen)
     enemy_sprites_list.draw(screen)
     menu_sprites_list.draw(screen)
     terrain_sprites_list.draw(screen)
+
     pygame.display.flip()
     clock.tick(60)
-    for timer in timers:
-        timer.update()
+
+    for t in timers:
+        t.update()
 
 pygame.quit()

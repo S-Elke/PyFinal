@@ -12,10 +12,10 @@ screen = pygame.display.set_mode(size)
 pygame.display.set_caption("Test Game")
 font = pygame.font.Font(None, 36)
 # Load dungeon backgrounds
-dungeon_1 = pygame.image.load("Dungeon 1.1.png").convert()
-dungeon_3 = pygame.image.load("Dungeon 3.png").convert()
+dungeon_1 = pygame.image.load("Dungeon_1_1920x1080.png").convert()
+dungeon_3 = pygame.image.load("Dungeon_3_1920x1080.png").convert()
 combat_background = pygame.image.load('dungeon_background_1920x1080.png')
-dungeon_images = [dungeon_1, dungeon_3,]
+dungeon_images = [dungeon_1, dungeon_3]
 current_dungeon = 0
 room_complete = False
 game_over = False
@@ -43,51 +43,52 @@ lightning_image = pygame.image.load('lightning_192x192_transparent_192.png').con
 fireball_image = pygame.image.load('fireball_192x192_transparent_192.png').convert_alpha()
 meteor_image = pygame.image.load('meteor_192x192_transparent_192.png').convert_alpha()
 
+
 class Player(pygame.sprite.Sprite):
     def __init__(self, pos, image):
         super().__init__()
         self.image = image
         self.rect = self.image.get_rect(center=pos)
-        self.attack_strength = 5 #placeholder
+        self.attack_strength = 5  # placeholder
         self.action = "None"
         self.defense = 0
-        self.armor = 5 #placeholder
-        self.health = 10 #placeholder
-        
+        self.armor = 5  # placeholder
+        self.health = 10  # placeholder
+
     def flip_sprite(self):
         self.image = pygame.transform.flip(self.image, True, False)
-        
+
     def moveRight(self, speed):
-        self.rect.x += speed * speed/15
-        if(self.rect.x < 0):
-            self.rect.x = 0
-        if(self.rect.x > 1760):
-            self.rect.x = 1760
+        self.rect.x += speed * speed / 15
+        if (self.rect.x < 50):
+            self.rect.x = 50
+        if (self.rect.x > 1650):
+            self.rect.x = 1650
 
     def moveLeft(self, speed):
-        self.rect.x -= speed * speed/15
-        if (self.rect.x < 0):
-            self.rect.x = 0
-        if (self.rect.x > 1760):
-            self.rect.x = 1760
+        self.rect.x -= speed * speed / 15
+        if (self.rect.x < 50):
+            self.rect.x = 50
+        if (self.rect.x > 1650):
+            self.rect.x = 1650
 
     def moveForward(self, speed):
-        self.rect.y += speed * speed/15
-        if (self.rect.y < -20):
-            self.rect.y = -20
-        if (self.rect.y > 925):
-            self.rect.y = 925
+        self.rect.y += speed * speed / 15
+        if (self.rect.y < 60):
+            self.rect.y = 60
+        if (self.rect.y > 800):
+            self.rect.y = 800
 
     def moveBack(self, speed):
-        self.rect.y -= speed * speed/15
-        if (self.rect.y < -20):
-            self.rect.y = -20
-        if (self.rect.y > 925):
-            self.rect.y = 925
+        self.rect.y -= speed * speed / 15
+        if (self.rect.y < 60):
+            self.rect.y = 60
+        if (self.rect.y > 800):
+            self.rect.y = 800
 
     def spell(self):
         print("Cast Spell")
-        
+
     def attack(self):
         self.action = "Attack"
         print(self.action)
@@ -103,7 +104,7 @@ class Player(pygame.sprite.Sprite):
     def enter_combat(self):
         self.position = self.rect
         self.image = scale_image(self.image, 2)
-        position = (1260, 700)
+        position = (1075, 550)
         self.rect.x = position[0]
         self.rect.y = position[1]
         pass
@@ -112,10 +113,10 @@ class Player(pygame.sprite.Sprite):
         self.image = self.normal_image
         self.rect = self.position
         pass
-        
-        
-        
+
+
 timers = []
+
 
 class timer():
     def __init__(self, duration, callback, start=False):
@@ -123,16 +124,16 @@ class timer():
         if start:
             self.timing = True
             self.start_time = pygame.time.get_ticks()
-            
+
             timers.append(self)
-        
+
         self.duration = duration * 1000
         self.callback = callback
 
     def start(self):
         self.start_time = pygame.time.get_ticks()
         self.timing = True
-        timers.append(self) 
+        timers.append(self)
 
     def update(self):
         if pygame.time.get_ticks() - self.start_time >= self.duration and self.timing:
@@ -142,6 +143,7 @@ class timer():
     def time_out(self):
         timers.remove(self)
         self.timing = False
+
 
 class Action:
     def __init__(self, intent_icon, probability, action):
@@ -153,17 +155,17 @@ class Action:
 def attack(entity, val):
     entity.increment_health(val)
 
-#goblin_attack = attack(player, 
-#attack = Action()
+
+# goblin_attack = attack(player,
+# attack = Action()
 
 
-    
-#Enemy class takes 3 arguments to initialize
-#pos = position of enemy on the map
-#image = sprite
-#actions = list of actions from the action class, detailed above
-class Enemy(pygame.sprite.Sprite): 
-    def __init__(self,pos,image,actions: list):
+# Enemy class takes 3 arguments to initialize
+# pos = position of enemy on the map
+# image = sprite
+# actions = list of actions from the action class, detailed above
+class Enemy(pygame.sprite.Sprite):
+    def __init__(self, pos, image, actions: list):
         super().__init__()
         self.image = image
         self.rect = self.image.get_rect(center=pos)
@@ -176,20 +178,20 @@ class Enemy(pygame.sprite.Sprite):
         self.image = pygame.transform.flip(self.image, True, False)
 
     def movement(self, end_pos_x, end_pos_y, increments):
-        if(((self.rect.x < end_pos_x) and (self.rect.y < end_pos_y)) and (increments%5 == 0)):
-            up_down = random.randint(1,2)
-            if(up_down == 1):
-                self.rect.y += random.randint(0,20)
+        if (((self.rect.x < end_pos_x) and (self.rect.y < end_pos_y)) and (increments % 5 == 0)):
+            up_down = random.randint(1, 2)
+            if (up_down == 1):
+                self.rect.y += random.randint(0, 20)
             else:
-                self.rect.x += random.randint(0,20)
+                self.rect.x += random.randint(0, 20)
 
     def increment_health(self, num):
         self.health += num
         if self.health <= 0:
-            self.visible = False;
+            self.visible = False
 
     def intent(self, player):
-        random_action = self.actions[random.randint(1,len(self.actions))]
+        random_action = self.actions[random.randint(1, len(self.actions))]
         self.current_action = random_action
 
     def act(self, player):
@@ -198,24 +200,25 @@ class Enemy(pygame.sprite.Sprite):
     def enter_combat(self):
         self.image = scale_image(self.image, 2)
         self.flip_sprite()
-        self.rect = each.image.get_rect(center=(1260,700))
+        self.rect = each.image.get_rect(center=(315,435))
 
     def exit_combat(self):
         pass
-        
-            
+
+
 def scale_image(image, scale):
-    image = pygame.transform.smoothscale(image, (image.get_size()[0]*scale, image.get_size()[1]*scale))
+    image = pygame.transform.smoothscale(image, (image.get_size()[0] * scale, image.get_size()[1] * scale))
     return image
 
+
 def scale_rect(rect, scale):
-    rect.x += rect[2]*(1-scale)/2
-    rect.y += rect[3]*(1-scale)/2
+    rect.x += rect[2] * (1 - scale) / 2
+    rect.y += rect[3] * (1 - scale) / 2
     return rect
 
 
 class Interactable(pygame.sprite.Sprite):
-    def __init__(self,pos,image, callback, clickable = True):
+    def __init__(self, pos, image, callback, clickable=True):
         super().__init__()
         self.image = image
         self.image_og = image
@@ -225,7 +228,7 @@ class Interactable(pygame.sprite.Sprite):
         self.callback = callback
         self.pressed = False
 
-    def update(self,events):
+    def update(self, events):
         if self.clickable == True:
             for event in events:
                 if event.type == pygame.MOUSEBUTTONUP:
@@ -240,23 +243,27 @@ class Interactable(pygame.sprite.Sprite):
                         self.image = scale_image(self.image, 0.5)
                         self.rect = scale_rect(self.rect, 0.5)
                         self.pressed = True
-                        
-#callable enemy attacks
+
+
+# callable enemy attacks
 
 
 class Terrain(pygame.sprite.Sprite):
-    def __init__(self,pos,image):
+    def __init__(self, pos, image):
         super().__init__()
         self.image = image
         self.rect = self.image.get_rect(center=pos)
 
+
 def on_click():
     ''
+
 
 player_sprites_list = pygame.sprite.Group()
 enemy_sprites_list = pygame.sprite.Group()
 menu_sprites_list = pygame.sprite.Group()
 terrain_sprites_list = pygame.sprite.Group()
+
 
 def reset_room():
     global enemies_remaining, room_complete
@@ -271,37 +278,38 @@ menu_sprites_list = pygame.sprite.Group()
 terrain_sprites_list = pygame.sprite.Group()
 particles_sprites_list = pygame.sprite.Group()
 
-player = Player((random.randint(1,1920), (random.randint(1,1080))), player_image)
-
+player = Player((150, 600), player_image)
+player.flip_sprite()
 exit_zone = pygame.Rect(WIDTH // 2 - 50, 0, 100, 50)
 
-goblin = Enemy((random.randint(1,1920), (random.randint(1,1080))), goblin_image, [attack(player, 5)])
-buff_goblin = Enemy((random.randint(1,1920), (random.randint(1,1080))), buff_goblin_image, [attack(player, 5)])
-boss = Enemy((random.randint(1,1920), (random.randint(1,1080))), boss, [attack(player, 5)])
-magicGoblin = Enemy((random.randint(1,1920), (random.randint(1,1080))), magic_goblin_image, [attack(player, 5)])
+goblin = Enemy((225, 250), goblin_image, [attack(player, 5)])
+goblin2 = Enemy((450,700), goblin_image, [attack(player, 5)])
+buff_goblin = Enemy((1500, 600), buff_goblin_image, [attack(player, 5)])
+boss = Enemy((0,0), boss, [attack(player, 5)])
+magicGoblin = Enemy((825,350), magic_goblin_image, [attack(player, 5)])
 
-menu = Interactable((1675,300), menu_image, on_click, clickable = False)
+menu = Interactable((1675, 300), menu_image, on_click, clickable=False)
 attack = Interactable((1675, 150), attack_button_image, player.attack)
 spell = Interactable((1675, 300), spell_button_image, player.spell)
 shield = Interactable((1675, 450), shield_button_image, player.block)
 
-fireball = Terrain ((0,0), fireball_image)
-lightning = Terrain ((0,0), lightning_image)
-meteor = Terrain ((0,0), meteor_image)
-wood_shield = Terrain((0,0), shield_wood_image)
-metal_shield = Terrain((0,0), shield_metal_image)
-magic_shield = Terrain((0,0), shield_magic_image)
-red_swoosh = Terrain((0,0), swoosh_red_image)
-blue_swoosh = Terrain((0,0), swoosh_blue_image)
-gray_swoosh = Terrain((0,0), swoosh_gray_image)
+fireball = Terrain((0, 0), fireball_image)
+lightning = Terrain((0, 0), lightning_image)
+meteor = Terrain((0, 0), meteor_image)
+wood_shield = Terrain((0, 0), shield_wood_image)
+metal_shield = Terrain((0, 0), shield_metal_image)
+magic_shield = Terrain((0, 0), shield_magic_image)
+red_swoosh = Terrain((0, 0), swoosh_red_image)
+blue_swoosh = Terrain((0, 0), swoosh_blue_image)
+gray_swoosh = Terrain((0, 0), swoosh_gray_image)
 
 player_sprites_list.add(player)
 enemy_sprites_list.add(goblin)
+enemy_sprites_list.add(goblin2)
 enemy_sprites_list.add(magicGoblin)
 enemy_sprites_list.add(buff_goblin)
-enemy_sprites_list.add(boss)
 
-#contains enemies in current combat as a list of objects
+# contains enemies in current combat as a list of objects
 enemy_object_list = []
 
 exit = True
@@ -312,13 +320,14 @@ enemies_remaining = 3
 last_direction_key = pygame.K_0
 speed_boost = 1.15
 
-player.flip_sprite()
+
 
 def end_player_turn():
     global combat_turn
     print("Callback ran")
     if combat_turn == "Player":
         combat_turn = "Enemy"
+
 
 attack_timer = timer(2, end_player_turn)
 
@@ -335,37 +344,73 @@ while exit:
     screen.blit(dungeon_images[current_dungeon], (0, 0))
 
     if combat_state == False:
+        for each in enemy_sprites_list:
+            enemy_object_list.append(each)
+
+        if current_dungeon == 0:
+            exit_zone = pygame.Rect(WIDTH // 2 - 50, 0, 100, 50)  # Top-middle
+        elif current_dungeon == 1:
+            exit_zone = pygame.Rect(WIDTH // 2 - 50, HEIGHT - 50, 100, 50)  # Bottom-middle
+
+        # Show room cleared message
+        if room_complete and not game_over:
+            text = font.render("Room Cleared! Go to the exit to continue...", True, (255, 255, 255))
+            screen.blit(text, (400, 1000))
+
+        #  Check if player leaves room
+        if player.rect.colliderect(exit_zone) and room_complete:
+            current_dungeon += 1
+            if current_dungeon >= len(dungeon_images):
+                print("Game Over – You Win!")
+                exit = False
+            else:
+                reset_room()
+        count = 0
+        for enemy in enemy_object_list:
+            if(enemy.visible == False):
+                count+= 1
+        if(count == len(enemy_object_list)):
+            print("Room cleared!")
+            enemy_object_list.clear()
+            menu_sprites_list.empty()
+            combat_state = False
+            room_complete = True
+
         keys = pygame.key.get_pressed()
 
-        goblin.movement(random.randint(1,1800), random.randint(1,1000) , pygame.time.get_ticks())
-        buff_goblin.movement(random.randint(1,1800), random.randint(1,1000) , pygame.time.get_ticks())
-        magicGoblin.movement(random.randint(1,1800), random.randint(1,1000) , pygame.time.get_ticks())
-        boss.movement(random.randint(1,1800), random.randint(1,1000) , pygame.time.get_ticks())
+        #goblin.movement(random.randint(1, 1800), random.randint(1, 1000), pygame.time.get_ticks())
+        #buff_goblin.movement(random.randint(1, 1800), random.randint(1, 1000), pygame.time.get_ticks())
+        #magicGoblin.movement(random.randint(1, 1800), random.randint(1, 1000), pygame.time.get_ticks())
+        #boss.movement(random.randint(1, 1800), random.randint(1, 1000), pygame.time.get_ticks())
 
         if keys[pygame.K_a]:
-            player.moveLeft(8.5*speed_boost)
-            if(last_direction_key != pygame.K_a):
+            player.moveLeft(8.5 * speed_boost)
+            if (last_direction_key != pygame.K_a):
                 player.flip_sprite()
             last_direction_key = pygame.K_a
         if keys[pygame.K_d]:
-            player.moveRight(8.5*speed_boost)
-            if(last_direction_key != pygame.K_d):
+            player.moveRight(8.5 * speed_boost)
+            if (last_direction_key != pygame.K_d):
                 player.flip_sprite()
             last_direction_key = pygame.K_d
         if keys[pygame.K_s]:
-            player.moveForward(8.5*speed_boost)
+            player.moveForward(8.5 * speed_boost)
         if keys[pygame.K_w]:
-            player.moveBack(8.5*speed_boost)
+            player.moveBack(8.5 * speed_boost)
 
         for each in enemy_sprites_list.sprites():
-           if((each.rect.x-50 < player.rect.x < each.rect.x+50) and (each.rect.y-50 < player.rect.y < each.rect.y+50)):
+            if ((each.rect.x - 50 < player.rect.x < each.rect.x + 50) and (
+                    each.rect.y - 50 < player.rect.y < each.rect.y + 50)):
                 enemy_sprites_list.empty()
                 enemy_sprites_list.add(each)
-                if(last_direction_key == pygame.K_d):
+                enemy_object_list.clear()
+                enemy_object_list.append(each)
+                if (last_direction_key == pygame.K_d):
                     player.flip_sprite()
                 combat_state = True
 
     if combat_state == True:
+        screen.blit(combat_background, (0,0))
         menu_sprites_list.add(menu)
         menu_sprites_list.add(attack)
         menu_sprites_list.add(spell)
@@ -398,32 +443,10 @@ while exit:
                 enemy.act(player)
                 enemy.intent(player)
 
-        if all(not enemy.visible for enemy in enemy_object_list):
-            print("Room cleared!")
-            enemy_object_list.clear()
-            menu_sprites_list.empty()
-            combat_state = False
-            room_complete = True
+
 
     # Update exit zone dynamically based on dungeon
-    if current_dungeon == 0:
-        exit_zone = pygame.Rect(WIDTH // 2 - 50, 0, 100, 50)  # Top-middle
-    elif current_dungeon == 1:
-        exit_zone = pygame.Rect(WIDTH // 2 - 50, HEIGHT - 50, 100, 50)  # Bottom-middle
 
-    # Show room cleared message
-    if room_complete and not game_over:
-        text = font.render("Room Cleared! Go to the exit to continue...", True, (255, 255, 255))
-        screen.blit(text, (400, 1000))
-
-    #  Check if player leaves room
-    if player.rect.colliderect(exit_zone) and room_complete:
-        current_dungeon += 1
-        if current_dungeon >= len(dungeon_images):
-            print("Game Over – You Win!")
-            exit = False
-        else:
-            reset_room()
 
     # Update & draw everything
     player_sprites_list.update()

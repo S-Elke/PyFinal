@@ -44,11 +44,9 @@ fireball_image = pygame.image.load('fireball_192x192_transparent_192.png').conve
 meteor_image = pygame.image.load('meteor_192x192_transparent_192.png').convert_alpha()
 
 class Player(pygame.sprite.Sprite):
-    def __init__(self, pos, image, combat_image):
+    def __init__(self, pos, image):
         super().__init__()
         self.image = image
-        self.normal_image = image
-        self.combat_image = combat_image
         self.rect = self.image.get_rect(center=pos)
         self.attack_strength = 5 #placeholder
         self.action = "None"
@@ -104,10 +102,10 @@ class Player(pygame.sprite.Sprite):
 
     def enter_combat(self):
         self.position = self.rect
-        position = (250, 240)
+        self.image = scale_image(self.image, 2)
+        position = (1260, 700)
         self.rect.x = position[0]
         self.rect.y = position[1]
-        self.image = self.combat_image
         pass
 
     def exit_combat(self, position):
@@ -198,7 +196,9 @@ class Enemy(pygame.sprite.Sprite):
         self.current_action.action()
 
     def enter_combat(self):
-        pass
+        self.image = scale_image(self.image, 2)
+        self.flip_sprite()
+        self.rect = each.image.get_rect(center=(1260,700))
 
     def exit_combat(self):
         pass
@@ -273,10 +273,12 @@ particles_sprites_list = pygame.sprite.Group()
 
 player = Player((random.randint(1,1920), (random.randint(1,1080))), player_image)
 
-goblin = Enemy((random.randint(1,1920), (random.randint(1,1080))), goblin_image)
-buff_goblin = Enemy((random.randint(1,1920), (random.randint(1,1080))), buff_goblin_image)
-boss = Enemy((random.randint(1,1920), (random.randint(1,1080))), boss)
-magicGoblin = Enemy((random.randint(1,1920), (random.randint(1,1080))), magic_goblin_image)
+exit_zone = pygame.Rect(WIDTH // 2 - 50, 0, 100, 50)
+
+goblin = Enemy((random.randint(1,1920), (random.randint(1,1080))), goblin_image, [attack(player, 5)])
+buff_goblin = Enemy((random.randint(1,1920), (random.randint(1,1080))), buff_goblin_image, [attack(player, 5)])
+boss = Enemy((random.randint(1,1920), (random.randint(1,1080))), boss, [attack(player, 5)])
+magicGoblin = Enemy((random.randint(1,1920), (random.randint(1,1080))), magic_goblin_image, [attack(player, 5)])
 
 menu = Interactable((1675,300), menu_image, on_click, clickable = False)
 attack = Interactable((1675, 150), attack_button_image, player.attack)
@@ -359,13 +361,8 @@ while exit:
            if((each.rect.x-50 < player.rect.x < each.rect.x+50) and (each.rect.y-50 < player.rect.y < each.rect.y+50)):
                 enemy_sprites_list.empty()
                 enemy_sprites_list.add(each)
-                each.image = scale_image(each.image, 2)
-                player.image = scale_image(player.image , 2)
                 if(last_direction_key == pygame.K_d):
                     player.flip_sprite()
-                each.flip_sprite()
-                each.rect = each.image.get_rect(center=(340,475))
-                player.rect= player.image.get_rect(center=(1260,700))
                 combat_state = True
 
     if combat_state == True:

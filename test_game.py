@@ -13,8 +13,8 @@ pygame.display.set_caption("Test Game")
 font = pygame.font.Font(None, 36)
 # Load dungeon backgrounds
 dungeon_1 = pygame.image.load("Dungeon 1.1.png").convert()
-dungeon_2 = pygame.image.load("Dungeon 3.png").convert()
-dungeon_images = [dungeon_1, dungeon_2,]
+dungeon_3 = pygame.image.load("Dungeon 3.png").convert()
+dungeon_images = [dungeon_1, dungeon_3,]
 current_dungeon = 0
 room_complete = False
 game_over = False
@@ -332,18 +332,18 @@ while exit:
             combat_state = False
             room_complete = True
 
-    # 🟨 Update exit zone dynamically based on dungeon
+    # Update exit zone dynamically based on dungeon
     if current_dungeon == 0:
         exit_zone = pygame.Rect(WIDTH // 2 - 50, 0, 100, 50)  # Top-middle
     elif current_dungeon == 1:
         exit_zone = pygame.Rect(WIDTH // 2 - 50, HEIGHT - 50, 100, 50)  # Bottom-middle
 
-    # ✅ Show room cleared message
+    # Show room cleared message
     if room_complete and not game_over:
         text = font.render("Room Cleared! Go to the exit to continue...", True, (255, 255, 255))
         screen.blit(text, (400, 1000))
 
-    # 🚪 Check if player leaves room
+    #  Check if player leaves room
     if player.rect.colliderect(exit_zone) and room_complete:
         current_dungeon += 1
         if current_dungeon >= len(dungeon_images):
@@ -352,7 +352,7 @@ while exit:
         else:
             reset_room()
 
-    # 🎮 Update & draw everything
+    # Update & draw everything
     player_sprites_list.update()
     enemy_sprites_list.update()
     menu_sprites_list.update(events)

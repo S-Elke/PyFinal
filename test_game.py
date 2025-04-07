@@ -22,12 +22,17 @@ player_combat_image = pygame.image.load('player_combat.png').convert_alpha()
 goblin_combat_image = pygame.image.load('goblin_combat.png').convert_alpha()
 
 class Player(pygame.sprite.Sprite):
-    def __init__(self, pos, image):
+    def __init__(self, pos, image, combat_image):
         super().__init__()
         self.image = image
+        self.normal_image = image
+        self.combat_image = combat_image
         self.rect = self.image.get_rect(center=pos)
         self.attack_strength = 5 #placeholder
         self.action = "None"
+        self.defense = 0
+        self.armor = 5 #placeholder
+        self.health = 10 #placeholder
 
     def moveRight(self, pixels):
         self.rect.x += pixels
@@ -50,62 +55,105 @@ class Player(pygame.sprite.Sprite):
 
     def block(self):
         print("Block")
-        
-timers = []
-
-class timer():
-    def __init__(self, duration, callback):
-        super().__init__()
-        self.start_time = pygame.time.get_ticks()
-        self.duration = duration * 1000
-        self.callback = callback
-        timers.append(self)
-        
-
-    def update():
-        if self.start_time - pygame.time.get_ticks() >= self.duration:
-            self.callback()
-            self.time_out()
-
-    def time_out():
-        timers.remove(self)
-
-    
-        
-
-    
-
-
-class Enemy(pygame.sprite.Sprite):
-    def __init__(self,pos,image):
-        super().__init__()
-        self.image = image
-        self.rect = self.image.get_rect(center=pos)
-        self.health = 11
-        self.visible = True
-
-    def movement(self):
-        ""
-
-    def combat(self,attacks):
-        #choice = random.randint(1,10)
-        choice = 7
-        if(choice < 3):  #block
-            ''
-        elif(choice < 5): #spell
-            ""
-        else: #attack
-            attack_mode = random.randint(1,10)
-
-            if(attack_mode < 3): #heavy attack
-                return(attacks[0])
-            else: #light attack
-                return(attacks[1])
 
     def increment_health(self, num):
         self.health += num
         if self.health <= 0:
             self.visible = False;
+
+    def enter_combat(self):
+        self.position = self.rect
+        position = (250, 240)
+        self.rect.x = position[0]
+        self.rect.y = position[1]
+        self.image = self.combat_image
+        pass
+
+    def exit_combat(self, position):
+        self.image = self.normal_image
+        self.rect = self.position
+        pass
+        
+        
+        
+timers = []
+
+class timer():
+    def __init__(self, duration, callback, start=False):
+        super().__init__()
+        if start:
+            self.timing = True
+            self.start_time = pygame.time.get_ticks()
+            
+            timers.append(self)
+        
+        self.duration = duration * 1000
+        self.callback = callback
+
+    def start(self):
+        self.start_time = pygame.time.get_ticks()
+        self.timing = True
+        timers.append(self) 
+
+    def update(self):
+        if pygame.time.get_ticks() - self.start_time >= self.duration and self.timing:
+            self.callback()
+            self.time_out()
+
+    def time_out(self):
+        timers.remove(self)
+        self.timing = False
+
+class Action:
+    def __init__(self, intent_icon, probability, action):
+        self.intent_icon = intent_icon
+        self.probability = probability
+        self.action = action
+
+
+def attack(entity, val):
+    entity.increment_health(val)
+
+#goblin_attack = attack(player, 
+#attack = Action()
+
+
+    
+#Enemy class takes 3 arguments to initialize
+#pos = position of enemy on the map
+#image = sprite
+#actions = list of actions from the action class, detailed above
+class Enemy(pygame.sprite.Sprite): 
+    def __init__(self,pos,image,actions: list):
+        super().__init__()
+        self.image = image
+        self.rect = self.image.get_rect(center=pos)
+        self.health = 11
+        self.visible = True
+        self.actions = actions
+        self.current_action = self.actions[0]
+
+    def movement(self):
+        ""
+
+    def increment_health(self, num):
+        self.health += num
+        if self.health <= 0:
+            self.visible = False;
+
+    def intent(self, player):
+        random_action = self.actions[random.randint(1,len(self.actions))]
+        self.current_action = random_action
+
+    def act(self, player):
+        self.current_action.action()
+
+    def enter_combat(self):
+        pass
+
+    def exit_combat(self):
+        pass
+        
             
 def scale_image(image, scale):
     image = pygame.transform.smoothscale(image, (image.get_size()[0]*scale, image.get_size()[1]*scale))
@@ -119,7 +167,7 @@ def scale_rect(rect, scale):
 
 class Interactable(pygame.sprite.Sprite):
     def __init__(self,pos,image, callback, clickable = True):
-        super().__init__()  
+        super().__init__()
         self.image = image
         self.image_og = image
         self.clickable = clickable
@@ -144,7 +192,9 @@ class Interactable(pygame.sprite.Sprite):
                         self.rect = scale_rect(self.rect, 0.5)
                         self.pressed = True
                         
-                        
+#callable enemy attacks
+
+
 
     
 
@@ -162,31 +212,38 @@ enemy_sprites_list = pygame.sprite.Group()
 menu_sprites_list = pygame.sprite.Group()
 terrain_sprites_list = pygame.sprite.Group()
 
-player = Player((200,300), player_image)
-goblin1 = Enemy((400, 500), goblin_image)
-goblin2 = Enemy((100, 800), goblin_image)
-magicGoblin = Enemy((600,600), magic_goblin_image)
+player = Player((200,300), player_image, player_combat_image)
+goblin1 = Enemy((400, 500), goblin_image, [attack(player, 5)])
+goblin2 = Enemy((100, 800), goblin_image, [attack(player, 5)])
+magicGoblin = Enemy((600,600), magic_goblin_image, [attack(player, 5)])
 
-menu = Interactable((960,880), menu_image, on_click, clickable = False)
-attack = Interactable((350, 880), attack_button_image, player.attack)
-spell = Interactable((850, 880), spell_button_image, player.spell)
-shield = Interactable((1350, 880), shield_button_image, player.block)
+menu_bar = Interactable((960,880), menu_image, on_click, clickable = False)
+attack_button = Interactable((450, 880), attack_button_image, player.attack)
+spell_button = Interactable((950, 880), spell_button_image, player.spell)
+shield_button = Interactable((1450, 880), shield_button_image, player.block)
 
-player_combat = Player((250, 500), player_combat_image)
-goblin_combat = Enemy((1250, 500) , goblin_combat_image)
+goblin_combat = Enemy((1250, 500) , goblin_combat_image, [attack(player, 5)])
 
 player_sprites_list.add(player)
 enemy_sprites_list.add(goblin1)
 enemy_sprites_list.add(goblin2)
 enemy_sprites_list.add(magicGoblin)
 
-
+#contains enemies in current combat as a list of objects
 enemy_object_list = []
 
 exit = True
 combat_state = False
 clock = pygame.time.Clock()
-combat_start = True
+combat_turn = "Start"
+
+
+def end_player_turn():
+    global combat_turn
+    print("Callback ran")
+    if combat_turn == "Player":
+        combat_turn = "Enemy"
+attack_timer = timer(2, end_player_turn)
 
 while exit:
     events = pygame.event.get()
@@ -213,35 +270,47 @@ while exit:
         for each in enemy_sprites_list.sprites():
             if((each.rect.x-50 < player.rect.x < each.rect.x+50) and (each.rect.y-50 < player.rect.y < each.rect.y+50)):
                 enemy_sprites_list.empty()
-                player_sprites_list.empty()
                 combat_state = True
 
                 
     if combat_state == True:
-        if combat_start:
-            combat_start = False
-        else:
-            menu_sprites_list.add(menu)
-            menu_sprites_list.add(attack)
-            menu_sprites_list.add(spell)
-            menu_sprites_list.add(shield)
-            player_sprites_list.add(player_combat)
-            enemy_object_list.append(goblin_combat)
+        menu_sprites_list.add(menu_bar)
+        menu_sprites_list.add(attack_button)
+        menu_sprites_list.add(spell_button)
+        menu_sprites_list.add(shield_button)
+        enemy_object_list.append(goblin_combat)
+        for enemy in enemy_object_list:
+            enemy_sprites_list.empty()
+            if enemy.visible == True:
+                enemy_sprites_list.add(enemy)
+        if combat_turn == "Start":
+            player.enter_combat()
             for enemy in enemy_object_list:
-                enemy_sprites_list.empty()
-                if enemy.visible == True:
-                    enemy_sprites_list.add(enemy)
-            
-            if player.action != "None":
+                enemy.enter_combat()
+            combat_turn = "Player"
+        elif combat_turn == "Player": #need to add "None" reset
+            if player.action == "None":
                 target = 0;
-                if player.action == "Attack":
-                    enemy_object_list[target].increment_health(-player.attack_strength)
-                    player.action = "None"
-
-            damage = int(goblin1.combat((6,2)))
-
-            health = 10
-            health -= damage
+                if keys[pygame.K_d]:
+                    target += 1
+                    if target >= len(enemy_object_list):
+                        target = 0
+                elif keys[pygame.K_a]:
+                    target -= 1
+                    if target < 0:
+                        target = len(enemy_object_list) - 1
+                #selector.position = enemy
+            elif player.action == "Attack":
+                attack(enemy_object_list[target], -player.attack_strength)
+                attack_timer.start()
+                player.action = "None"
+            elif player.action == "Defend":
+                player.defense += player.armor #need to add a turn reset
+        elif combat_turn == "Enemy":
+            for enemy in enemy_object_list:
+                enemy.act(player)
+                enemy.intent(player)
+                
 
 
     player_sprites_list.update()

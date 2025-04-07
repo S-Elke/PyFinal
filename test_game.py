@@ -14,6 +14,7 @@ font = pygame.font.Font(None, 36)
 # Load dungeon backgrounds
 dungeon_1 = pygame.image.load("Dungeon 1.1.png").convert()
 dungeon_3 = pygame.image.load("Dungeon 3.png").convert()
+combat_background = pygame.image.load('dungeon_background_1920x1080.png')
 dungeon_images = [dungeon_1, dungeon_3,]
 current_dungeon = 0
 room_complete = False
@@ -21,15 +22,26 @@ game_over = False
 
 exit_zone = pygame.Rect(0, 0, 0, 0)
 
-goblin_image = pygame.image.load('goblin.png').convert_alpha()
-magic_goblin_image = pygame.image.load('magic_goblin.png').convert_alpha()
-player_image = pygame.image.load('player.png').convert_alpha()
-menu_image = pygame.image.load('menu_bar.png').convert_alpha()
-attack_button_image = pygame.image.load('attack__button.png').convert_alpha()
-spell_button_image = pygame.image.load('spell_button.png').convert_alpha()
-shield_button_image = pygame.image.load('shield_button.png').convert_alpha()
+goblin_image = pygame.image.load('goblin_final_192x192.png').convert_alpha()
+magic_goblin_image = pygame.image.load('magic_goblin_192_transparent.png').convert_alpha()
+buff_goblin_image = pygame.image.load('buff_goblin_256px_transparent.png').convert_alpha()
+boss = pygame.image.load('boss_goblin_blue_320px_transparent.png').convert_alpha()
+player_image = pygame.image.load('character_192x192_transparent.png').convert_alpha()
+menu_image = pygame.image.load('menu_backdrop.png').convert_alpha()
+attack_button_image = pygame.image.load('button_attack.png').convert_alpha()
+spell_button_image = pygame.image.load('button_spell.png').convert_alpha()
+shield_button_image = pygame.image.load('button_block.png').convert_alpha()
 player_combat_image = pygame.image.load('player_combat.png').convert_alpha()
 goblin_combat_image = pygame.image.load('goblin_combat.png').convert_alpha()
+swoosh_gray_image = pygame.image.load('swoosh_true_gray_192 (1).png').convert_alpha()
+swoosh_blue_image = pygame.image.load('swoosh_blue_192.png').convert_alpha()
+swoosh_red_image = pygame.image.load('swoosh_red_192.png').convert_alpha()
+shield_wood_image = pygame.image.load('shield_wooden_fixed_192.png').convert_alpha()
+shield_metal_image = pygame.image.load('shield_metal_fixed_192.png').convert_alpha()
+shield_magic_image = pygame.image.load('shield_magic_fixed_192.png').convert_alpha()
+lightning_image = pygame.image.load('lightning_192x192_transparent_192.png').convert_alpha()
+fireball_image = pygame.image.load('fireball_192x192_transparent_192.png').convert_alpha()
+meteor_image = pygame.image.load('meteor_192x192_transparent_192.png').convert_alpha()
 
 class Player(pygame.sprite.Sprite):
     def __init__(self, pos, image, combat_image):
@@ -43,18 +55,37 @@ class Player(pygame.sprite.Sprite):
         self.defense = 0
         self.armor = 5 #placeholder
         self.health = 10 #placeholder
+        
+    def flip_sprite(self):
+        self.image = pygame.transform.flip(self.image, True, False)
+        
+    def moveRight(self, speed):
+        self.rect.x += speed * speed/15
+        if(self.rect.x < 0):
+            self.rect.x = 0
+        if(self.rect.x > 1760):
+            self.rect.x = 1760
 
-    def moveRight(self, pixels):
-        self.rect.x += pixels
-
-    def moveLeft(self, pixels):
-        self.rect.x -= pixels
+    def moveLeft(self, speed):
+        self.rect.x -= speed * speed/15
+        if (self.rect.x < 0):
+            self.rect.x = 0
+        if (self.rect.x > 1760):
+            self.rect.x = 1760
 
     def moveForward(self, speed):
         self.rect.y += speed * speed/15
+        if (self.rect.y < -20):
+            self.rect.y = -20
+        if (self.rect.y > 925):
+            self.rect.y = 925
 
     def moveBack(self, speed):
         self.rect.y -= speed * speed/15
+        if (self.rect.y < -20):
+            self.rect.y = -20
+        if (self.rect.y > 925):
+            self.rect.y = 925
 
     def spell(self):
         print("Cast Spell")
@@ -143,8 +174,16 @@ class Enemy(pygame.sprite.Sprite):
         self.actions = actions
         self.current_action = self.actions[0]
 
-    def movement(self):
-        ""
+    def flip_sprite(self):
+        self.image = pygame.transform.flip(self.image, True, False)
+
+    def movement(self, end_pos_x, end_pos_y, increments):
+        if(((self.rect.x < end_pos_x) and (self.rect.y < end_pos_y)) and (increments%5 == 0)):
+            up_down = random.randint(1,2)
+            if(up_down == 1):
+                self.rect.y += random.randint(0,20)
+            else:
+                self.rect.x += random.randint(0,20)
 
     def increment_health(self, num):
         self.health += num
@@ -226,23 +265,39 @@ def reset_room():
     player.rect.x, player.rect.y = 200, 300
 
 
-player = Player((200,300), player_image, player_combat_image)
-exit_zone = pygame.Rect(WIDTH // 2 - 50, 0, 100, 50)
-goblin1 = Enemy((400, 500), goblin_image, [attack(player, 5)])
-goblin2 = Enemy((100, 800), goblin_image, [attack(player, 5)])
-magicGoblin = Enemy((600,600), magic_goblin_image, [attack(player, 5)])
+player_sprites_list = pygame.sprite.Group()
+enemy_sprites_list = pygame.sprite.Group()
+menu_sprites_list = pygame.sprite.Group()
+terrain_sprites_list = pygame.sprite.Group()
+particles_sprites_list = pygame.sprite.Group()
 
-menu_bar = Interactable((960,880), menu_image, on_click, clickable = False)
-attack_button = Interactable((450, 880), attack_button_image, player.attack)
-spell_button = Interactable((950, 880), spell_button_image, player.spell)
-shield_button = Interactable((1450, 880), shield_button_image, player.block)
+player = Player((random.randint(1,1920), (random.randint(1,1080))), player_image)
 
-goblin_combat = Enemy((1250, 500) , goblin_combat_image, [attack(player, 5)])
+goblin = Enemy((random.randint(1,1920), (random.randint(1,1080))), goblin_image)
+buff_goblin = Enemy((random.randint(1,1920), (random.randint(1,1080))), buff_goblin_image)
+boss = Enemy((random.randint(1,1920), (random.randint(1,1080))), boss)
+magicGoblin = Enemy((random.randint(1,1920), (random.randint(1,1080))), magic_goblin_image)
+
+menu = Interactable((1675,300), menu_image, on_click, clickable = False)
+attack = Interactable((1675, 150), attack_button_image, player.attack)
+spell = Interactable((1675, 300), spell_button_image, player.spell)
+shield = Interactable((1675, 450), shield_button_image, player.block)
+
+fireball = Terrain ((0,0), fireball_image)
+lightning = Terrain ((0,0), lightning_image)
+meteor = Terrain ((0,0), meteor_image)
+wood_shield = Terrain((0,0), shield_wood_image)
+metal_shield = Terrain((0,0), shield_metal_image)
+magic_shield = Terrain((0,0), shield_magic_image)
+red_swoosh = Terrain((0,0), swoosh_red_image)
+blue_swoosh = Terrain((0,0), swoosh_blue_image)
+gray_swoosh = Terrain((0,0), swoosh_gray_image)
 
 player_sprites_list.add(player)
-enemy_sprites_list.add(goblin1)
-enemy_sprites_list.add(goblin2)
+enemy_sprites_list.add(goblin)
 enemy_sprites_list.add(magicGoblin)
+enemy_sprites_list.add(buff_goblin)
+enemy_sprites_list.add(boss)
 
 #contains enemies in current combat as a list of objects
 enemy_object_list = []
@@ -252,6 +307,10 @@ combat_state = False
 clock = pygame.time.Clock()
 combat_turn = "Start"
 enemies_remaining = 3
+last_direction_key = pygame.K_0
+speed_boost = 1.15
+
+player.flip_sprite()
 
 def end_player_turn():
     global combat_turn
@@ -276,27 +335,44 @@ while exit:
     if combat_state == False:
         keys = pygame.key.get_pressed()
 
+        goblin.movement(random.randint(1,1800), random.randint(1,1000) , pygame.time.get_ticks())
+        buff_goblin.movement(random.randint(1,1800), random.randint(1,1000) , pygame.time.get_ticks())
+        magicGoblin.movement(random.randint(1,1800), random.randint(1,1000) , pygame.time.get_ticks())
+        boss.movement(random.randint(1,1800), random.randint(1,1000) , pygame.time.get_ticks())
+
         if keys[pygame.K_a]:
-            player.moveLeft(8.5)
+            player.moveLeft(8.5*speed_boost)
+            if(last_direction_key != pygame.K_a):
+                player.flip_sprite()
+            last_direction_key = pygame.K_a
         if keys[pygame.K_d]:
-            player.moveRight(8.5)
+            player.moveRight(8.5*speed_boost)
+            if(last_direction_key != pygame.K_d):
+                player.flip_sprite()
+            last_direction_key = pygame.K_d
         if keys[pygame.K_s]:
-            player.moveForward(8.5)
+            player.moveForward(8.5*speed_boost)
         if keys[pygame.K_w]:
-            player.moveBack(8.5)
+            player.moveBack(8.5*speed_boost)
 
         for each in enemy_sprites_list.sprites():
-            if ((each.rect.x - 50 < player.rect.x < each.rect.x + 50) and
-                (each.rect.y - 50 < player.rect.y < each.rect.y + 50)):
+           if((each.rect.x-50 < player.rect.x < each.rect.x+50) and (each.rect.y-50 < player.rect.y < each.rect.y+50)):
                 enemy_sprites_list.empty()
+                enemy_sprites_list.add(each)
+                each.image = scale_image(each.image, 2)
+                player.image = scale_image(player.image , 2)
+                if(last_direction_key == pygame.K_d):
+                    player.flip_sprite()
+                each.flip_sprite()
+                each.rect = each.image.get_rect(center=(340,475))
+                player.rect= player.image.get_rect(center=(1260,700))
                 combat_state = True
 
     if combat_state == True:
-        menu_sprites_list.add(menu_bar)
-        menu_sprites_list.add(attack_button)
-        menu_sprites_list.add(spell_button)
-        menu_sprites_list.add(shield_button)
-        enemy_object_list.append(goblin_combat)
+        menu_sprites_list.add(menu)
+        menu_sprites_list.add(attack)
+        menu_sprites_list.add(spell)
+        menu_sprites_list.add(shield)
         enemy_sprites_list.empty()
         for enemy in enemy_object_list:
             if enemy.visible:

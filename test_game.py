@@ -42,6 +42,7 @@ shield_magic_image = pygame.image.load('shield_magic_fixed_192.png').convert_alp
 lightning_image = pygame.image.load('lightning_192x192_transparent_192.png').convert_alpha()
 fireball_image = pygame.image.load('fireball_192x192_transparent_192.png').convert_alpha()
 meteor_image = pygame.image.load('meteor_192x192_transparent_192.png').convert_alpha()
+health_bar_image = pygame.image.load('health_bar.png')
 
 
 class Player(pygame.sprite.Sprite):
@@ -114,6 +115,27 @@ class Player(pygame.sprite.Sprite):
         self.rect = self.position
         pass
 
+class health_bar(pygame.sprite.Sprite):
+    def __init__(self, image, parent):
+        super().__init__()
+        self.visible = True
+        self.parent = parent
+        self.image = pygame.transform.smoothscale(image, (parent.rect.width * parent.health / parent.max_health, 10))
+        self.rect = self.image.get_rect(center=(parent.rect.x,parent.rect.y))
+        
+    def update(self):
+        if self.parent.health <= 0:
+            self.visible = False
+        else:
+            self.rect.y = self.parent.rect.y + self.parent.rect.height*1.5
+            self.rect.x = self.parent.rect.x + self.parent.rect.width*.25
+            self.rect.width = self.parent.rect.width * self.parent.health / self.parent.max_health
+            
+            self.image = pygame.transform.smoothscale(self.image, (self.parent.rect.width * self.parent.health / self.parent.max_health, 10))
+        
+        
+        
+
 
 timers = []
 
@@ -144,6 +166,12 @@ class timer():
         timers.remove(self)
         self.timing = False
 
+class animator(timer):
+    def __init__(self, duration, callback, start=False):
+        super().__init__()
+
+    
+
 
 class Action:
     def __init__(self, intent_icon, probability, action):
@@ -170,6 +198,7 @@ class Enemy(pygame.sprite.Sprite):
         self.image = image
         self.rect = self.image.get_rect(center=pos)
         self.health = 11
+        self.max_health = self.health
         self.visible = True
         self.actions = actions
         self.current_action = self.actions[0]
@@ -293,10 +322,12 @@ buff_goblin = Enemy((1500, 600), buff_goblin_image, [goblin_attack])
 boss = Enemy((0,0), boss, [goblin_attack])
 magicGoblin = Enemy((825,350), magic_goblin_image, [goblin_attack])
 
+
 menu_bar = Interactable((1675, 300), menu_image, on_click, clickable=False)
 attack_button = Interactable((1675, 150), attack_button_image, player.attack)
 spell_button = Interactable((1675, 300), spell_button_image, player.spell)
 shield_button = Interactable((1675, 450), shield_button_image, player.block)
+
 
 fireball = Terrain((0, 0), fireball_image)
 lightning = Terrain((0, 0), lightning_image)
@@ -314,6 +345,7 @@ enemy_sprites_list.add(goblin2)
 enemy_sprites_list.add(magicGoblin)
 enemy_sprites_list.add(buff_goblin)
 
+
 # contains enemies in current combat as a list of objects
 enemy_object_list = []
 
@@ -324,6 +356,7 @@ combat_turn = "Start"
 enemies_remaining = 3
 last_direction_key = pygame.K_0
 speed_boost = 1.15
+health_bar_list = []
 
 
 
@@ -351,6 +384,7 @@ while exit:
     if combat_state == False:
         for each in enemy_sprites_list:
             enemy_object_list.append(each)
+            
 
         if current_dungeon == 0:
             exit_zone = pygame.Rect(WIDTH // 2 - 50, 0, 100, 50)  # Top-middle
@@ -421,15 +455,16 @@ while exit:
         menu_sprites_list.add(spell_button)
         menu_sprites_list.add(shield_button)
         enemy_sprites_list.empty()
-        for enemy in enemy_object_list:
-            if enemy.visible:
-                enemy_sprites_list.add(enemy)
+        
+                
 
         if combat_turn == "Start":
             player.enter_combat()
             for enemy in enemy_object_list:
                 enemy.intent(player)
                 enemy.enter_combat()
+                enemy_health_bar = health_bar(health_bar_image, enemy)
+                health_bar_list.append(enemy_health_bar)
             combat_turn = "Player"
         elif combat_turn == "Player":
             if player.action == "None":
@@ -454,6 +489,19 @@ while exit:
             for enemy in enemy_object_list:
                 print("Enemy hp:", enemy.health)
             combat_turn = "Player"
+        enemies_left = False
+        for enemy in enemy_object_list:
+            if enemy.visible == True:
+                enemies_left = True
+        if enemies_left:
+            combat_state == False
+
+        for enemy in enemy_object_list:
+            if enemy.visible:
+                enemy_sprites_list.add(enemy)
+        for bar in health_bar_list:
+            if bar.visible:
+                enemy_sprites_list.add(bar)
 
 
 

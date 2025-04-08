@@ -443,7 +443,7 @@ def reset_room():
 player_sprites_list = pygame.sprite.Group()
 enemy_sprites_list = pygame.sprite.Group()
 menu_sprites_list = pygame.sprite.Group()
-Animation_sprites_list = pygame.sprite.Group()
+animation_sprites_list = pygame.sprite.Group()
 
 player = Player((150, 600), player_image)
 player.flip_sprite()
@@ -649,12 +649,12 @@ while exit:
     player_sprites_list.update()
     enemy_sprites_list.update()
     menu_sprites_list.update(events)
-    Animation_sprites_list.update()
+    animation_sprites_list.update()
 
     player_sprites_list.draw(screen)
     enemy_sprites_list.draw(screen)
     menu_sprites_list.draw(screen)
-    Animation_sprites_list.draw(screen)
+    animation_sprites_list.draw(screen)
 
     pygame.display.flip()
     clock.tick(60)

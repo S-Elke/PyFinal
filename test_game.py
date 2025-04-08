@@ -10,7 +10,7 @@ pygame.init()
 size = (WIDTH, HEIGHT)
 screen = pygame.display.set_mode(size)
 pygame.display.set_caption("Test Game")
-font = pygame.font.Font(None, 36)
+font = pygame.font.SysFont(None, 36, bold=True)
 # Load dungeon backgrounds
 dungeon_1 = pygame.image.load("Dungeon_1_1920x1080.png").convert()
 dungeon_3 = pygame.image.load("Dungeon_3_1920x1080.png").convert()
@@ -194,6 +194,15 @@ class Player(pygame.sprite.Sprite):
         self.defense = 0
         self.armor = 5  # placeholder
         self.health = 10  # placeholder
+        self.inventory = {
+            "Sword": 1,
+            "Shield": 1,
+            "Book": 1
+        }
+        self.has_sword = False
+        self.has_shield = False
+        self.spells = []
+
         self.acted = False
 
     def flip_sprite(self):
@@ -501,6 +510,32 @@ def end_player_turn():
     if combat_turn == "Player":
         combat_turn = "Enemy"
 
+def use_inventory(item, player):
+    if item == "Sword" and not player.has_sword:
+        player.attack_strength += 5
+        player.has_sword = True
+        print("Sword equipped. Attack increased.")
+
+    elif item == "Shield" and not player.has_shield:
+        player.armor += 3
+        player.has_shield = True
+        print("Shield equipped. Armor increased.")
+
+    elif item == "Book":
+        possible_spells = ["Lightning", "Fireball", "Meteor"]
+        for spell in possible_spells:
+            if spell not in player.spells:
+                player.spells.append(spell)
+                print(f"Learned {spell} spell.")
+                break
+
+def draw_inventory(screen, player):
+    x, y = 25, 25  # Inventory HUD position
+    for item, count in player.inventory.items():
+        text = font.render(f"{item}: {count}", True, (255, 255, 255))
+        screen.blit(text, (x, y))
+        x += 200
+
 
 attack_timer = timer(2, end_player_turn)
 
@@ -512,6 +547,14 @@ while exit:
         elif event.type == pygame.KEYDOWN:
             if event.key == pygame.K_x:
                 exit = False
+                    # Inventory hotkeys (only work out of combat)
+        elif event.key == pygame.K_1 and not combat_state:
+                use_inventory("Sword", player)
+        elif event.key == pygame.K_2 and not combat_state:
+                use_inventory("Shield", player)
+        elif event.key == pygame.K_3 and not combat_state:
+                use_inventory("Book", player)
+
 
     # Background draw (first!)
     screen.blit(dungeon_images[current_dungeon], (0, 0))
@@ -674,6 +717,10 @@ while exit:
     enemy_sprites_list.draw(screen)
     menu_sprites_list.draw(screen)
     animation_sprites_list.draw(screen)
+
+if not combat_state:
+    draw_inventory(screen, player)
+
 
     pygame.display.flip()
     clock.tick(60)

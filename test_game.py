@@ -31,6 +31,7 @@ menu_image = pygame.image.load('menu_backdrop.png').convert_alpha()
 attack_button_image = pygame.image.load('button_attack.png').convert_alpha()
 spell_button_image = pygame.image.load('button_spell.png').convert_alpha()
 shield_button_image = pygame.image.load('button_block.png').convert_alpha()
+bolt_button_image = pygame.image.load('button_bolt.png').convert_alpha()
 player_combat_image = pygame.image.load('player_combat.png').convert_alpha()
 goblin_combat_image = pygame.image.load('goblin_combat.png').convert_alpha()
 swoosh_gray_image = pygame.image.load('swoosh_true_gray_192 (1).png').convert_alpha()
@@ -186,6 +187,7 @@ class Animations(pygame.sprite.Sprite):
 class Player(pygame.sprite.Sprite):
     def __init__(self, pos, image):
         super().__init__()
+        self.spells = []
         self.image = image
         self.normal_image = image
         self.rect = self.image.get_rect(center=pos)
@@ -229,8 +231,18 @@ class Player(pygame.sprite.Sprite):
 
     def spell(self):
         print("Cast Spell")
+        self.action = "Spell"
+        
+
+    def meteor(self):
+        self.action = "Meteor"
         meteor = Animations((375, 300), "meteor")
         animation_sprites_list.add(meteor)
+
+    def bolt(self):
+        self.action = "Bolt"
+        bolt = Animations((375, 300), "lightning")
+        animation_sprites_list.add(bolt)
 
     def attack(self):
         self.action = "Attack"
@@ -468,6 +480,12 @@ attack_button = Interactable((1675, 150), attack_button_image, player.attack)
 spell_button = Interactable((1675, 300), spell_button_image, player.spell)
 shield_button = Interactable((1675, 450), shield_button_image, player.block)
 
+menu_button = Interactable((1675, 150), spell_button_image, player.spell)
+bolt_button = Interactable((1675, 300), bolt_button_image, player.bolt)
+
+player.spells.append(bolt_button)
+
+
 room_enemy_list = []
 player_sprites_list.add(player)
 room_enemy_list.append(goblin)
@@ -585,6 +603,8 @@ while exit:
 
     if combat_state == True:
         screen.blit(combat_background, (0,0))
+        
+        menu_sprites_list.empty()
         menu_sprites_list.add(menu_bar)
         if menu_state == "Actions":
             
@@ -592,8 +612,9 @@ while exit:
             menu_sprites_list.add(spell_button)
             menu_sprites_list.add(shield_button)
         elif menu_state == "Spells":
+            menu_sprites_list.add(menu_button)
             for spell in player.spells:
-                menu_sprites_list.add(spell.button)
+                menu_sprites_list.add(spell)
                 #placement logic? if only 2 can skip
         enemy_sprites_list.empty()
         
@@ -623,9 +644,14 @@ while exit:
                     player.defense += player.armor
                     player.acted = True
                 elif player.action == "Spell":
+                    print("did it")
                     #display spell menu logic
-                    menu = "Spells"
-                elif player.action == "Fireball":
+                    menu_state = "Spells"
+                elif player.action == "Back":
+                    menu_state = "Menu"
+                elif player.action == "Meteor":
+                    pass
+                elif player.action == "Bolt":
                     pass
                     
         elif combat_turn == "Enemy":
@@ -639,6 +665,7 @@ while exit:
                 print("Enemy hp:", enemy.health)
             combat_turn = "Player"
             player.acted = False
+            menu_state = "Menu"
         enemies_left = False
         for enemy in enemy_object_list:
             if enemy.visible == True:

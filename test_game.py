@@ -240,7 +240,7 @@ class Player(pygame.sprite.Sprite):
     def block(self):
         print("Block")
         master_block = Animations((1275, 750), "magic_shield")
-        animation_sprites_list.add(master_block
+        animation_sprites_list.add(master_block)
 
     def increment_health(self, num):
         self.health += num

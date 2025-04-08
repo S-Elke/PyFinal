@@ -194,6 +194,7 @@ class Player(pygame.sprite.Sprite):
         self.defense = 0
         self.armor = 5  # placeholder
         self.health = 10  # placeholder
+        self.acted = False
 
     def flip_sprite(self):
         self.image = pygame.transform.flip(self.image, True, False)
@@ -259,6 +260,7 @@ class Player(pygame.sprite.Sprite):
         self.image = self.normal_image
         self.rect = self.position
         pass
+    
 
 class health_bar(pygame.sprite.Sprite):
     def __init__(self, image, parent):
@@ -488,6 +490,7 @@ enemies_remaining = 3
 last_direction_key = pygame.K_0
 speed_boost = 1.15
 health_bar_list = []
+menu_state = "Actions"
 
 
 
@@ -583,9 +586,15 @@ while exit:
     if combat_state == True:
         screen.blit(combat_background, (0,0))
         menu_sprites_list.add(menu_bar)
-        menu_sprites_list.add(attack_button)
-        menu_sprites_list.add(spell_button)
-        menu_sprites_list.add(shield_button)
+        if menu_state == "Actions":
+            
+            menu_sprites_list.add(attack_button)
+            menu_sprites_list.add(spell_button)
+            menu_sprites_list.add(shield_button)
+        elif menu_state == "Spells":
+            for spell in player.spells:
+                menu_sprites_list.add(spell.button)
+                #placement logic? if only 2 can skip
         enemy_sprites_list.empty()
         
                 
@@ -599,28 +608,37 @@ while exit:
                 health_bar_list.append(enemy_health_bar)
             combat_turn = "Player"
         elif combat_turn == "Player":
-            if player.action == "None":
-                target = 0
-                if keys[pygame.K_d]:
-                    target = (target + 1) % len(enemy_object_list)
-                elif keys[pygame.K_a]:
-                    target = (target - 1) % len(enemy_object_list)
-            elif player.action == "Attack":
-                attack(enemy_object_list[target], player.attack_strength)
-                attack_timer.start()
-                player.action = ""
-            elif player.action == "Defend":
-                player.defense += player.armor
+            if player.acted == False:
+                if player.action == "None":
+                    target = 0
+                    if keys[pygame.K_d]:
+                        target = (target + 1) % len(enemy_object_list)
+                    elif keys[pygame.K_a]:
+                        target = (target - 1) % len(enemy_object_list)
+                elif player.action == "Attack":
+                    attack(enemy_object_list[target], player.attack_strength)
+                    attack_timer.start()
+                    player.acted = True
+                elif player.action == "Defend":
+                    player.defense += player.armor
+                    player.acted = True
+                elif player.action == "Spell":
+                    #display spell menu logic
+                    menu = "Spells"
+                elif player.action == "Fireball":
+                    pass
+                    
         elif combat_turn == "Enemy":
             for enemy in enemy_object_list:
                 enemy.act(player)
                 enemy.intent(player)
                 combat_turn = "End Step"
-        elif combat_turn == "End Step":
+        elif combat_turn == "End Step": #each turn
             print("Player hp:", player.health)
             for enemy in enemy_object_list:
                 print("Enemy hp:", enemy.health)
             combat_turn = "Player"
+            player.acted = False
         enemies_left = False
         for enemy in enemy_object_list:
             if enemy.visible == True:
@@ -630,6 +648,7 @@ while exit:
             for enemy in room_enemy_list:
                 if enemy.visible:
                     enemy_sprites_list.add(enemy)
+                    
             
             combat_state = False
 

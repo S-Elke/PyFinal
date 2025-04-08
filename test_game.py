@@ -340,11 +340,15 @@ red_swoosh = Terrain((0, 0), swoosh_red_image)
 blue_swoosh = Terrain((0, 0), swoosh_blue_image)
 gray_swoosh = Terrain((0, 0), swoosh_gray_image)
 
+room_enemy_list = []
 player_sprites_list.add(player)
-enemy_sprites_list.add(goblin)
-enemy_sprites_list.add(goblin2)
-enemy_sprites_list.add(magicGoblin)
-enemy_sprites_list.add(buff_goblin)
+room_enemy_list.append(goblin)
+room_enemy_list.append(goblin2)
+room_enemy_list.append(magicGoblin)
+room_enemy_list.append(buff_goblin)
+
+for enemy in room_enemy_list:
+    enemy_sprites_list.add(enemy)
 
 
 # contains enemies in current combat as a list of objects
@@ -358,6 +362,7 @@ enemies_remaining = 3
 last_direction_key = pygame.K_0
 speed_boost = 1.15
 health_bar_list = []
+
 
 
 
@@ -496,6 +501,9 @@ while exit:
                 enemies_left = True
         if enemies_left == False: #cleanup step
             player.exit_combat()
+            for enemy in room_enemy_list:
+                if enemy.visible:
+                    enemy_sprites_list.add(enemy)
             
             combat_state = False
 

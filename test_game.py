@@ -44,6 +44,144 @@ fireball_image = pygame.image.load('fireball_192x192_transparent_192.png').conve
 meteor_image = pygame.image.load('meteor_192x192_transparent_192.png').convert_alpha()
 health_bar_image = pygame.image.load('health_bar.png')
 
+class Animations(pygame.sprite.Sprite):
+    def __init__(self, pos, type):
+        super().__init__()
+        self.enemy = enemy
+        self.type = type
+        self.animation_type = type
+
+        self.lightning0 = pygame.image.load('lightning0.png').convert_alpha()
+        self.lightning1 = pygame.image.load('lightning1.png').convert_alpha()
+        self.lightning2 = pygame.image.load('lightning2.png').convert_alpha()
+        self.lightning3= pygame.image.load('lightning3.png').convert_alpha()
+
+        self.fireball0 = pygame.image.load('fireball0.png').convert_alpha()
+        self.fireball1 = pygame.image.load('fireball1.png').convert_alpha()
+        self.fireball2 = pygame.image.load('fireball2.png').convert_alpha()
+        self.fireball3 = pygame.image.load('fireball3.png').convert_alpha()
+        self.fireball4 = pygame.image.load('fireball4.png').convert_alpha()
+        self.fireball5 = pygame.image.load('fireball5.png').convert_alpha()
+
+        self.meteor0 = pygame.image.load('meteor0.png').convert_alpha()
+        self.meteor1 = pygame.image.load('meteor1.png').convert_alpha()
+        self.meteor2 = pygame.image.load('meteor2.png').convert_alpha()
+        self.meteor3 = pygame.image.load('meteor3.png').convert_alpha()
+        self.meteor4 = pygame.image.load('meteor4.png').convert_alpha()
+        self.meteor5 = pygame.image.load('meteor5.png').convert_alpha()
+
+        self.swoosh_gray0 = pygame.image.load('swoosh_gray0.png').convert_alpha()
+        self.swoosh_gray1 = pygame.image.load('swoosh_gray1.png').convert_alpha()
+        self.swoosh_gray2 = pygame.image.load('swoosh_gray2.png').convert_alpha()
+        self.swoosh_gray3 = pygame.image.load('swoosh_gray3.png').convert_alpha()
+        self.swoosh_gray4 = pygame.image.load('swoosh_gray4.png').convert_alpha()
+        self.swoosh_gray5 = pygame.image.load('swoosh_gray5.png').convert_alpha()
+
+        self.swoosh_blue0 = pygame.image.load('swoosh_blue0.png').convert_alpha()
+        self.swoosh_blue2 = pygame.image.load('swoosh_blue2.png').convert_alpha()
+        self.swoosh_blue3 = pygame.image.load('swoosh_blue3.png').convert_alpha()
+        self.swoosh_blue4 = pygame.image.load('swoosh_blue4.png').convert_alpha()
+        self.swoosh_blue5 = pygame.image.load('swoosh_blue5.png').convert_alpha()
+        self.swoosh_blue6 = pygame.image.load('swoosh_blue6.png').convert_alpha()
+        self.swoosh_blue7 = pygame.image.load('swoosh_blue7.png').convert_alpha()
+
+        self.swoosh_red0 = pygame.image.load('swoosh_red0.png').convert_alpha()
+        self.swoosh_red1 = pygame.image.load('swoosh_red1.png').convert_alpha()
+        self.swoosh_red2 = pygame.image.load('swoosh_red2.png').convert_alpha()
+        self.swoosh_red3 = pygame.image.load('swoosh_red3.png').convert_alpha()
+        self.swoosh_red4 = pygame.image.load('swoosh_red4.png').convert_alpha()
+        self.swoosh_red5 = pygame.image.load('swoosh_red5.png').convert_alpha()
+        self.swoosh_red6 = pygame.image.load('swoosh_red6.png').convert_alpha()
+        self.swoosh_red7 = pygame.image.load('swoosh_red7.png').convert_alpha()
+        self.swoosh_red8 = pygame.image.load('swoosh_red8.png').convert_alpha()
+
+        self.wood_shield0 = pygame.image.load('wooden_shield1.png').convert_alpha()
+        self.wood_shield1 = pygame.image.load('wooden_shield2.png').convert_alpha()
+        self.wood_shield2 = pygame.image.load('wooden_shield3.png').convert_alpha()
+        self.wood_shield3 = pygame.image.load('wooden_shield4.png').convert_alpha()
+        self.wood_shield4 = pygame.image.load('wooden_shield5.png').convert_alpha()
+
+        self.metal_shield0 = pygame.image.load('metal_shield_0.png').convert_alpha()
+        self.metal_shield1 = pygame.image.load('metal_shield_1.png').convert_alpha()
+        self.metal_shield2 = pygame.image.load('metal_shield_2.png').convert_alpha()
+        self.metal_shield3 = pygame.image.load('metal_shield_3.png').convert_alpha()
+        self.metal_shield4 = pygame.image.load('metal_shield_4.png').convert_alpha()
+        self.metal_shield5 = pygame.image.load('metal_shield_5.png').convert_alpha()
+
+        self.magic_shield0 = pygame.image.load('magic_shield0.png').convert_alpha()
+        self.magic_shield1 = pygame.image.load('magic_shield1.png').convert_alpha()
+        self.magic_shield2 = pygame.image.load('magic_shield2.png').convert_alpha()
+        self.magic_shield3 = pygame.image.load('magic_shield3.png').convert_alpha()
+        self.magic_shield4 = pygame.image.load('magic_shield4.png').convert_alpha()
+        self.magic_shield5 = pygame.image.load('magic_shield5.png').convert_alpha()
+
+
+        self.lightning_animation = [self.lightning0, self.lightning1, self.lightning2, self.lightning3, self.lightning2, self.lightning1, self.lightning0]
+        self.fireball_animation = [self.fireball0, self.fireball1, self.fireball2, self.fireball3, self.fireball4, self.fireball5]
+        self.meteor_animation = [self.meteor0, self.meteor1, self.meteor2, self.meteor3, self.meteor4, self.meteor5]
+        self.swoosh_gray_animation = [self.swoosh_gray0, self.swoosh_gray1, self.swoosh_gray2, self.swoosh_gray3, self.swoosh_gray4, self.swoosh_gray5]
+        self.swoosh_blue_animation = [self.swoosh_blue0, self.swoosh_blue2, self.swoosh_blue3, self.swoosh_blue4, self.swoosh_blue5,self.swoosh_blue6, self.swoosh_blue7]
+        self.swoosh_red_animation = [self.swoosh_red0, self.swoosh_red1, self.swoosh_red2, self.swoosh_red3, self.swoosh_red4, self.swoosh_red5, self.swoosh_red6, self.swoosh_red7, self.swoosh_red8]
+        self.wood_shield_animation = [self.wood_shield0, self.wood_shield1, self.wood_shield2, self.wood_shield3, self.wood_shield4]
+        self.metal_shield_animation = [self.metal_shield0, self.metal_shield1, self.metal_shield2, self.metal_shield3, self.metal_shield4, self.metal_shield5]
+        self.magic_shield_animation = [self.magic_shield0, self.magic_shield1, self.magic_shield2, self.magic_shield3, self.magic_shield4, self.magic_shield5]
+        self.current_sprite = 0
+        self.speed = 0.125
+        self.repeat_number = 1
+        self.count = 0
+        if(type == "lightning"):
+            self.animation_type = self.lightning_animation
+            self.speed = 0.125
+            self.repeat_number = 0
+        elif(type == "fireball"):
+            self.animation_type = self.fireball_animation
+            self.speed = 0.2
+            self.repeat_number = 0
+        elif(type == "meteor"):
+            self.animation_type = self.meteor_animation
+            self.speed = 0.2
+            self.repeat_number = 2
+        elif(type == "swoosh_gray"):
+            self.animation_type = self.swoosh_gray_animation
+            self.speed = 0.2
+            self.repeat_number = 2
+        elif(type == "swoosh_blue"):
+            self.animation_type = self.swoosh_blue_animation
+            self.speed = 0.2
+            self.repeat_number = 2
+        elif(type == "swoosh_red"):
+            self.animation_type = self.swoosh_red_animation
+            self.speed = 0.2
+            self.repeat_number = 2
+        elif(type == "wood_shield"):
+            self.animation_type = self.wood_shield_animation
+            self.speed = 0.2
+            self.repeat_number = 0
+        elif(type == "metal_shield"):
+            self.animation_type = self.metal_shield_animation
+            self.speed = 0.2
+            self.repeat_number = 0
+        elif(type == "magic_shield"):
+            self.animation_type = self.magic_shield_animation
+            self.speed = 0.2
+            self.repeat_number = 0
+
+        self.image = self.animation_type[self.current_sprite]
+
+
+        self.rect = self.image.get_rect(center=pos)
+    def update(self):
+
+        self.current_sprite += self.speed
+        if self.current_sprite >= len(self.animation_type):
+            self.current_sprite = 0
+            if(self.count >= self.repeat_number):
+                animation_sprites_list.empty()
+            else:
+                self.count += 1
+        self.image = self.animation_type[int(self.current_sprite)]
+
+
 
 class Player(pygame.sprite.Sprite):
     def __init__(self, pos, image):
@@ -90,13 +228,19 @@ class Player(pygame.sprite.Sprite):
 
     def spell(self):
         print("Cast Spell")
+        meteor = Animations((375, 300), "meteor")
+        animation_sprites_list.add(meteor)
 
     def attack(self):
         self.action = "Attack"
         print(self.action)
+        master_attack = Animations((600,500), "swoosh_red")
+        animation_sprites_list.add(master_attack)
 
     def block(self):
         print("Block")
+        master_block = Animations((1275, 750), "magic_shield")
+        animation_sprites_list.add(master_block
 
     def increment_health(self, num):
         self.health += num
@@ -289,12 +433,6 @@ def on_click():
     ''
 
 
-player_sprites_list = pygame.sprite.Group()
-enemy_sprites_list = pygame.sprite.Group()
-menu_sprites_list = pygame.sprite.Group()
-terrain_sprites_list = pygame.sprite.Group()
-
-
 def reset_room():
     global enemies_remaining, room_complete
     enemies_remaining = 3
@@ -305,8 +443,7 @@ def reset_room():
 player_sprites_list = pygame.sprite.Group()
 enemy_sprites_list = pygame.sprite.Group()
 menu_sprites_list = pygame.sprite.Group()
-terrain_sprites_list = pygame.sprite.Group()
-particles_sprites_list = pygame.sprite.Group()
+Animation_sprites_list = pygame.sprite.Group()
 
 player = Player((150, 600), player_image)
 player.flip_sprite()
@@ -328,17 +465,6 @@ menu_bar = Interactable((1675, 300), menu_image, on_click, clickable=False)
 attack_button = Interactable((1675, 150), attack_button_image, player.attack)
 spell_button = Interactable((1675, 300), spell_button_image, player.spell)
 shield_button = Interactable((1675, 450), shield_button_image, player.block)
-
-
-fireball = Terrain((0, 0), fireball_image)
-lightning = Terrain((0, 0), lightning_image)
-meteor = Terrain((0, 0), meteor_image)
-wood_shield = Terrain((0, 0), shield_wood_image)
-metal_shield = Terrain((0, 0), shield_metal_image)
-magic_shield = Terrain((0, 0), shield_magic_image)
-red_swoosh = Terrain((0, 0), swoosh_red_image)
-blue_swoosh = Terrain((0, 0), swoosh_blue_image)
-gray_swoosh = Terrain((0, 0), swoosh_gray_image)
 
 room_enemy_list = []
 player_sprites_list.add(player)
@@ -523,12 +649,12 @@ while exit:
     player_sprites_list.update()
     enemy_sprites_list.update()
     menu_sprites_list.update(events)
-    terrain_sprites_list.update()
+    Animation_sprites_list.update()
 
     player_sprites_list.draw(screen)
     enemy_sprites_list.draw(screen)
     menu_sprites_list.draw(screen)
-    terrain_sprites_list.draw(screen)
+    Animation_sprites_list.draw(screen)
 
     pygame.display.flip()
     clock.tick(60)

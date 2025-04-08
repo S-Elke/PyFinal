@@ -49,6 +49,7 @@ class Player(pygame.sprite.Sprite):
     def __init__(self, pos, image):
         super().__init__()
         self.image = image
+        self.normal_image = image
         self.rect = self.image.get_rect(center=pos)
         self.attack_strength = 5  # placeholder
         self.action = "None"
@@ -110,7 +111,7 @@ class Player(pygame.sprite.Sprite):
         self.rect.y = position[1]
         pass
 
-    def exit_combat(self, position):
+    def exit_combat(self):
         self.image = self.normal_image
         self.rect = self.position
         pass
@@ -493,8 +494,10 @@ while exit:
         for enemy in enemy_object_list:
             if enemy.visible == True:
                 enemies_left = True
-        if enemies_left:
-            combat_state == False
+        if enemies_left == False: #cleanup step
+            player.exit_combat()
+            
+            combat_state = False
 
         for enemy in enemy_object_list:
             if enemy.visible:

@@ -566,11 +566,11 @@ while exit:
             if event.key == pygame.K_x:
                 exit = False
                     # Inventory hotkeys (only work out of combat)
-        elif event.key == pygame.K_1 and not combat_state:
+            elif event.key == pygame.K_1 and not combat_state:
                 use_inventory("Sword", player)
-        elif event.key == pygame.K_2 and not combat_state:
+            elif event.key == pygame.K_2 and not combat_state:
                 use_inventory("Shield", player)
-        elif event.key == pygame.K_3 and not combat_state:
+            elif event.key == pygame.K_3 and not combat_state:
                 use_inventory("Book", player)
 
 

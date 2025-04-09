@@ -28,6 +28,9 @@ magic_goblin_image = pygame.image.load('magic_goblin_192_transparent.png').conve
 buff_goblin_image = pygame.image.load('buff_goblin_256px_transparent.png').convert_alpha()
 boss = pygame.image.load('boss_goblin_blue_320px_transparent.png').convert_alpha()
 player_image = pygame.image.load('character_192x192_transparent.png').convert_alpha()
+sword_drop_image = pygame.image.load('Sword_Blue.png').convert_alpha()
+shield_drop_image = pygame.image.load('Shield_Normal.png').convert_alpha()
+spell_drop_image = pygame.image.load('Spell_Yellow.png').convert_alpha()
 menu_image = pygame.image.load('menu_backdrop.png').convert_alpha()
 attack_button_image = pygame.image.load('button_attack.png').convert_alpha()
 spell_button_image = pygame.image.load('button_spell.png').convert_alpha()
@@ -309,6 +312,16 @@ class Player(pygame.sprite.Sprite):
             self.armor = 0
             if self.health <= 0:
                 self.visible = False
+    
+                dropped_item = random.choice(["Sword", "Shield", "Book"])
+                if dropped_item == "Sword":
+                    drop = ItemDrop((self.rect.centerx + 100, self.rect.centery), sword_drop_image, "Sword")
+                elif dropped_item == "Shield":
+                    drop = ItemDrop((self.rect.centerx + 100, self.rect.centery), shield_drop_image, "Shield")
+                else:
+                    drop = ItemDrop((self.rect.centerx + 100, self.rect.centery), spell_drop_image, "Book")
+
+                item_drops_list.add(drop)
 
     def enter_combat(self):
         self.position = self.rect
@@ -364,8 +377,14 @@ class health_bar(pygame.sprite.Sprite):
             self.rect.y = self.parent.rect.y + self.parent.rect.height*1.5
             self.rect.x = self.parent.rect.x + self.parent.rect.width*.25
             self.rect.width = self.parent.rect.width * self.parent.health / self.parent.max_health
-            self.image = pygame.transform.smoothscale(self.image, (self.parent.rect.width * self.parent.health / self.parent.max_health, 10))
-        
+            self.image = pygame.transform.smoothscale(self.image, (self.parent.rect.width * self.parent.health / self.parent.max_health, 10))  
+
+class ItemDrop(pygame.sprite.Sprite):
+    def __init__(self, pos, image, item_name):
+        super().__init__()
+        self.image = image
+        self.rect = self.image.get_rect(center=pos)
+        self.item_name = item_name
         
         
 
@@ -628,6 +647,8 @@ player_sprites_list = pygame.sprite.Group()
 enemy_sprites_list = pygame.sprite.Group()
 menu_sprites_list = pygame.sprite.Group()
 animation_sprites_list = pygame.sprite.Group()
+item_drops_list = pygame.sprite.Group()
+
 
 player = Player((150, 600), player_image)
 player.flip_sprite()
@@ -779,6 +800,19 @@ while exit:
             room_complete = True
 
         keys = pygame.key.get_pressed()
+
+# Player picks up nearby dropped items
+        for drop in item_drops_list:
+            if player.rect.colliderect(drop.rect):
+                print(f"Picked up: {drop.item_name}")
+        
+                if drop.item_name in player.inventory:
+                    player.inventory[drop.item_name] += 1
+                else:
+                    player.inventory[drop.item_name] = 1
+
+        # Remove the drop from the screen
+                drop.kill()
 
         #goblin.movement(random.randint(1, 1800), random.randint(1, 1000), pygame.time.get_ticks())
         #buff_goblin.movement(random.randint(1, 1800), random.randint(1, 1000), pygame.time.get_ticks())

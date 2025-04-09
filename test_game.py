@@ -22,6 +22,7 @@ game_over = False
 
 exit_zone = pygame.Rect(0, 0, 0, 0)
 
+#loading sprites
 goblin_image = pygame.image.load('goblin_final_192x192.png').convert_alpha()
 magic_goblin_image = pygame.image.load('magic_goblin_192_transparent.png').convert_alpha()
 buff_goblin_image = pygame.image.load('buff_goblin_256px_transparent.png').convert_alpha()
@@ -31,6 +32,8 @@ menu_image = pygame.image.load('menu_backdrop.png').convert_alpha()
 attack_button_image = pygame.image.load('button_attack.png').convert_alpha()
 spell_button_image = pygame.image.load('button_spell.png').convert_alpha()
 shield_button_image = pygame.image.load('button_block.png').convert_alpha()
+fireball_button_image = pygame.image.load('button_fireball.png').convert_alpha()
+meteor_button_image = pygame.image.load('button_meteor.png').convert_alpha()
 bolt_button_image = pygame.image.load('button_bolt.png').convert_alpha()
 player_combat_image = pygame.image.load('player_combat.png').convert_alpha()
 goblin_combat_image = pygame.image.load('goblin_combat.png').convert_alpha()
@@ -45,6 +48,32 @@ fireball_image = pygame.image.load('fireball_192x192_transparent_192.png').conve
 meteor_image = pygame.image.load('meteor_192x192_transparent_192.png').convert_alpha()
 health_bar_image = pygame.image.load('health_bar.png')
 
+#functions for image maniupulation
+def scale_image(image, scale):
+    image = pygame.transform.smoothscale(image, (image.get_size()[0] * scale, image.get_size()[1] * scale))
+    return image
+
+def scale_rect(rect, scale):
+    rect.x += rect[2] * (1 - scale) / 2
+    rect.y += rect[3] * (1 - scale) / 2
+    return rect
+
+#scaling sprites for different purposes
+attack_intent_image = pygame.image.load('swoosh_red_192.png').convert_alpha()
+scale_image(attack_intent_image, 0.5)
+defend_intent_image = pygame.image.load('shield_metal_fixed_192.png').convert_alpha()
+scale_image(defend_intent_image, 0.5)
+lightning_intent_image = pygame.image.load('lightning_192x192_transparent_192.png').convert_alpha()
+scale_image(lightning_intent_image, 0.5)
+fireball_intent_image = pygame.image.load('fireball_192x192_transparent_192.png').convert_alpha()
+scale_image(fireball_intent_image, 0.5)
+meteor_intent_image = pygame.image.load('meteor_192x192_transparent_192.png').convert_alpha()
+scale_image(meteor_intent_image, 0.5)
+
+
+
+
+#animations handler
 class Animations(pygame.sprite.Sprite):
     def __init__(self, pos, type):
         super().__init__()
@@ -193,9 +222,10 @@ class Player(pygame.sprite.Sprite):
         self.rect = self.image.get_rect(center=pos)
         self.attack_strength = 5  # placeholder
         self.action = "None"
-        self.defense = 0
-        self.armor = 5  # placeholder
-        self.health = 10  # placeholder
+        self.defense = 5 # placeholder
+        self.armor = 0
+        self.max_health = 10
+        self.health = self.max_health  # placeholder
         self.inventory = {
             "Sword": 1,
             "Shield": 1,
@@ -225,6 +255,7 @@ class Player(pygame.sprite.Sprite):
             self.rect.x = 1650
 
     def moveForward(self, speed):
+        print(self.rect)
         self.rect.y += speed * speed / 15
         if (self.rect.y < 60):
             self.rect.y = 60
@@ -250,8 +281,14 @@ class Player(pygame.sprite.Sprite):
 
     def bolt(self):
         self.action = "Bolt"
+        print(self.action)
         bolt = Animations((375, 300), "lightning")
         animation_sprites_list.add(bolt)
+
+    def fireball(self):
+        self.action = "Fireball"
+        fireball = Animations((375, 300), "fireball")
+        animation_sprites_list.add(fireball)
 
     def attack(self):
         self.action = "Attack"
@@ -260,14 +297,18 @@ class Player(pygame.sprite.Sprite):
         animation_sprites_list.add(master_attack)
 
     def block(self):
-        print("Block")
+        self.action = "Block"
+        print(self.action)
         master_block = Animations((1275, 750), "magic_shield")
         animation_sprites_list.add(master_block)
 
     def increment_health(self, num):
-        self.health += num
-        if self.health <= 0:
-            self.visible = False
+        self.armor += num
+        if self.armor <=0:
+            self.health += self.armor
+            self.armor = 0
+            if self.health <= 0:
+                self.visible = False
 
     def enter_combat(self):
         self.position = self.rect
@@ -281,7 +322,32 @@ class Player(pygame.sprite.Sprite):
         self.image = self.normal_image
         self.rect = self.position
         pass
-    
+
+class still_image(pygame.sprite.Sprite):
+    def __init__(self, image, pos):
+        super().__init__()
+        self.visible = False
+        self.image = image
+        self.rect = self.image.get_rect(center=pos)
+
+intent_sprites_list = pygame.sprite.Group()
+intent_list = []
+
+intent_location = (315,435)
+attack_intent_icon = still_image(attack_intent_image, intent_location)
+intent_list.append(attack_intent_icon)
+
+defend_intent_icon = still_image(defend_intent_image, intent_location)
+intent_list.append(defend_intent_icon)
+
+bolt_intent_icon = still_image(lightning_intent_image, intent_location)
+intent_list.append(bolt_intent_icon)
+
+fireball_intent_icon = still_image(fireball_intent_image, intent_location)
+intent_list.append(fireball_intent_icon)
+
+meteor_intent_icon = still_image(meteor_intent_image, intent_location)
+intent_list.append(meteor_intent_icon)
 
 class health_bar(pygame.sprite.Sprite):
     def __init__(self, image, parent):
@@ -298,7 +364,6 @@ class health_bar(pygame.sprite.Sprite):
             self.rect.y = self.parent.rect.y + self.parent.rect.height*1.5
             self.rect.x = self.parent.rect.x + self.parent.rect.width*.25
             self.rect.width = self.parent.rect.width * self.parent.health / self.parent.max_health
-            
             self.image = pygame.transform.smoothscale(self.image, (self.parent.rect.width * self.parent.health / self.parent.max_health, 10))
         
         
@@ -333,23 +398,103 @@ class timer():
     def time_out(self):
         timers.remove(self)
         self.timing = False
-
-class animator(timer):
-    def __init__(self, duration, callback, start=False):
-        super().__init__()
-
     
 
 
 class Action:
-    def __init__(self, intent_icon, probability, action):
-        self.intent_icon = intent_icon
-        self.probability = probability
+    def __init__(self, intent_icon, action):
+        self.intent = intent_icon
         self.action = action
 
 
 def attack(entity, val):
     entity.increment_health(-val)
+
+def burn(entity, strength, duration):
+    entity.burn = [strength, duration]
+
+#basic goblin actions: attack, defend
+def goblin_attack_function():
+    global player
+    attack(player, 5)
+    attack_anim = Animations((900, 725), "swoosh_red")
+    animation_sprites_list.add(attack_anim)
+    
+goblin_attack = Action(attack_intent_icon, goblin_attack_function)
+
+def goblin_defend_function():
+    global enemy_object_list
+    enemy_object_list[0].armor += 3
+    defend = Animations((400,550), "wood_shield")
+    animation_sprites_list.add(defend)
+
+goblin_defend = Action(defend_intent_icon, goblin_defend_function)
+
+#mage goblin actions: fire, bolt
+def mage_fireball_function():
+    global player
+    attack(player, 6)
+    fireball = Animations((1275, 600), "fireball")
+    animation_sprites_list.add(fireball)
+
+mage_fireball = Action(fireball_intent_icon, mage_fireball_function)
+
+def mage_bolt_function():
+    global player
+    player.armor = 0
+    attack(player, 2)
+    attack_anim = Animations((900, 725), "swoosh_red")
+    animation_sprites_list.add(attack_anim)
+
+mage_bolt = Action(bolt_intent_icon, mage_bolt_function)
+
+#Brute goblin actions: empower, attack, attack
+brute_strength = 7
+def brute_attack_function():
+    global player
+    global brute_strength
+    attack(player, brute_strength)
+    attack_anim = Animations((900, 725), "swoosh_gray")
+    animation_sprites_list.add(attack_anim)
+    
+
+brute_attack = Action(attack_intent_icon, brute_attack_function)
+
+def brute_empower_function():
+    global brute_strength
+    brute_strength += 1
+    defend = Animations((400,550), "magic_shield")
+    animation_sprites_list.add(defend)
+brute_empower = Action(defend_intent_icon, brute_empower_function)
+
+#boss goblin actions: atk, atk, bolt, defend/empower
+temp_strength = 0
+def boss_attack_function():
+    global player
+    global temp_strength
+    attack(player, 8 + temp_strength)
+    temp_strength = 0
+    attack_anim = Animations((900, 725), "swoosh_blue")
+    animation_sprites_list.add(attack_anim)
+boss_attack = Action(attack_intent_icon, boss_attack_function)
+
+def boss_bolt_function():
+    global player
+    player.armor = 0
+    attack(player, 2)
+    attack_anim = Animations((900, 725), "swoosh_red")
+    animation_sprites_list.add(attack_anim)
+boss_bolt = Action(bolt_intent_icon, boss_bolt_function)
+
+def boss_defend_function():
+    global enemy_object_list
+    global temp_strength
+    temp_strength = 3
+    enemy_object_list[0].armor += 1
+    defend = Animations((400,550), "magic_shield")
+    animation_sprites_list.add(defend)
+boss_defend = Action(defend_intent_icon, boss_defend_function)
+
 
 
 # goblin_attack = attack(player,
@@ -361,15 +506,19 @@ def attack(entity, val):
 # image = sprite
 # actions = list of actions from the action class, detailed above
 class Enemy(pygame.sprite.Sprite):
-    def __init__(self, pos, image, actions: list):
+    def __init__(self, pos, image, actions: list, health = 10):
         super().__init__()
         self.image = image
+        self.armor = 0
         self.rect = self.image.get_rect(center=pos)
-        self.health = 11
+        self.health = health
         self.max_health = self.health
         self.visible = True
-        self.actions = actions
-        self.current_action = self.actions[0]
+        self.starting_actions = actions.copy()
+        self.available_actions = actions
+        self.current_action = self.available_actions[0]
+        self.burn = [0, 0]
+        
 
     def flip_sprite(self):
         self.image = pygame.transform.flip(self.image, True, False)
@@ -383,35 +532,47 @@ class Enemy(pygame.sprite.Sprite):
                 self.rect.x += random.randint(0, 20)
 
     def increment_health(self, num):
-        self.health += num
-        if self.health <= 0:
-            self.visible = False
+        self.armor += num
+        print("armor:",self.armor)
+        if self.armor <=0:
+            self.health += self.armor
+            self.armor = 0
+            if self.health <= 0:
+                self.visible = False
 
     def intent(self, player):
-        random_action = self.actions[random.randint(0, -1+len(self.actions))]
-        self.current_action = random_action
+        print("Starting_actions", self.starting_actions)
+        
+        if len(self.available_actions) == 0:
+            self.available_actions = self.starting_actions.copy()
+        print("Available", self.available_actions)
+        self.current_action = self.available_actions[0]
+        self.current_action.intent.visible = True
 
     def act(self, player):
-        self.current_action()
+        self.current_action.action()
+        self.current_action.intent.visible = False
+        self.available_actions.pop(0)
 
     def enter_combat(self):
         self.image = scale_image(self.image, 2)
         self.flip_sprite()
         self.rect = each.image.get_rect(center=(315,435))
 
+    def end_step(self):
+        print("Burn:", self.burn)
+        if self.burn[1] > 0:
+            self.increment_health(-self.burn[0])
+            print(self.burn[0])
+            print(self.health)
+            self.burn[1] -= 1
+        print("Burn:", self.burn)
+        self.armor = 0
+
     def exit_combat(self):
         pass
 
 
-def scale_image(image, scale):
-    image = pygame.transform.smoothscale(image, (image.get_size()[0] * scale, image.get_size()[1] * scale))
-    return image
-
-
-def scale_rect(rect, scale):
-    rect.x += rect[2] * (1 - scale) / 2
-    rect.y += rect[3] * (1 - scale) / 2
-    return rect
 
 
 class Interactable(pygame.sprite.Sprite):
@@ -473,26 +634,26 @@ player.flip_sprite()
 exit_zone = pygame.Rect(WIDTH // 2 - 50, 0, 100, 50)
 
 # callable enemy attacks
-def goblin_attack():
-    global player
-    attack(player, 5)
 
-goblin = Enemy((225, 250), goblin_image, [goblin_attack])
-goblin2 = Enemy((450,700), goblin_image, [goblin_attack])
-buff_goblin = Enemy((1500, 600), buff_goblin_image, [goblin_attack])
-boss = Enemy((0,0), boss, [goblin_attack])
-magicGoblin = Enemy((825,350), magic_goblin_image, [goblin_attack])
 
+goblin = Enemy((225, 250), goblin_image, [goblin_attack, goblin_defend])
+goblin2 = Enemy((450,700), goblin_image, [goblin_attack, goblin_defend])
+buff_goblin = Enemy((1500, 600), buff_goblin_image, [brute_empower, brute_attack, brute_attack], health = 42)
+boss_goblin = Enemy((1500,600), boss, [boss_attack, boss_attack, boss_bolt, boss_defend], health = 40)
+magicGoblin = Enemy((825,350), magic_goblin_image, [mage_fireball, mage_bolt], health = 20)
 
 menu_bar = Interactable((1675, 300), menu_image, on_click, clickable=False)
 attack_button = Interactable((1675, 150), attack_button_image, player.attack)
 spell_button = Interactable((1675, 300), spell_button_image, player.spell)
 shield_button = Interactable((1675, 450), shield_button_image, player.block)
 
-menu_button = Interactable((1675, 150), spell_button_image, player.spell)
+meteor_button = Interactable((1675, 150), meteor_button_image, player.meteor)
 bolt_button = Interactable((1675, 300), bolt_button_image, player.bolt)
+fireball_button = Interactable((1675, 450), fireball_button_image, player.fireball)
 
+player.spells.append(meteor_button)
 player.spells.append(bolt_button)
+player.spells.append(fireball_button)
 
 
 room_enemy_list = []
@@ -522,9 +683,9 @@ menu_state = "Actions"
 
 
 
+
 def end_player_turn():
     global combat_turn
-    print("Callback ran")
     if combat_turn == "Player":
         combat_turn = "Enemy"
 
@@ -554,6 +715,7 @@ def draw_inventory(screen, player):
         screen.blit(text, (x, y))
         x += 200
 
+room_complete = True
 
 attack_timer = timer(2, end_player_turn)
 
@@ -583,9 +745,9 @@ while exit:
             
 
         if current_dungeon == 0:
-            exit_zone = pygame.Rect(WIDTH // 2 - 50, 0, 100, 50)  # Top-middle
+            exit_zone = pygame.Rect(852, 66, 192, 192)  # Top-middle
         elif current_dungeon == 1:
-            exit_zone = pygame.Rect(WIDTH // 2 - 50, HEIGHT - 50, 100, 50)  # Bottom-middle
+            exit_zone = pygame.Rect((842, 800, 192, 192))  # Bottom-middle
 
         # Show room cleared message
         if room_complete and not game_over:
@@ -593,19 +755,24 @@ while exit:
             screen.blit(text, (400, 1000))
 
         #  Check if player leaves room
-        if player.rect.colliderect(exit_zone) and room_complete:
-            current_dungeon += 1
-            if current_dungeon >= len(dungeon_images):
-                print("Game Over – You Win!")
-                exit = False
-            else:
-                reset_room()
+        if player.rect.colliderect(exit_zone):
+            if room_complete:
+                current_dungeon += 1
+                player.rect = exit_zone
+                enemy_object_list.append(boss_goblin)
+                enemy_sprites_list.add(boss_goblin)
+                if current_dungeon == 2:
+                    current_dungeon = 1
+                    enemy_sprites_list.empty()
+                    #animaiton shtuff
+                    exit = False
+                else:
+                    reset_room()
         count = 0
         for enemy in enemy_object_list:
             if(enemy.visible == False):
                 count+= 1
         if(count == len(enemy_object_list)):
-            print("Room cleared!")
             enemy_object_list.clear()
             menu_sprites_list.empty()
             combat_state = False
@@ -630,6 +797,7 @@ while exit:
             last_direction_key = pygame.K_d
         if keys[pygame.K_s]:
             player.moveForward(8.5 * speed_boost)
+            print(player.rect)
         if keys[pygame.K_w]:
             player.moveBack(8.5 * speed_boost)
 
@@ -646,7 +814,7 @@ while exit:
 
     if combat_state == True:
         screen.blit(combat_background, (0,0))
-        
+        intent_sprites_list.empty()
         menu_sprites_list.empty()
         menu_sprites_list.add(menu_bar)
         if menu_state == "Actions":
@@ -655,7 +823,7 @@ while exit:
             menu_sprites_list.add(spell_button)
             menu_sprites_list.add(shield_button)
         elif menu_state == "Spells":
-            menu_sprites_list.add(menu_button)
+            #menu_sprites_list.add(menu_button)
             for spell in player.spells:
                 menu_sprites_list.add(spell)
                 #placement logic? if only 2 can skip
@@ -669,7 +837,9 @@ while exit:
                 enemy.intent(player)
                 enemy.enter_combat()
                 enemy_health_bar = health_bar(health_bar_image, enemy)
+                player_health_bar = health_bar(health_bar_image, player)
                 health_bar_list.append(enemy_health_bar)
+                health_bar_list.append(player_health_bar)
             combat_turn = "Player"
         elif combat_turn == "Player":
             if player.acted == False:
@@ -683,18 +853,33 @@ while exit:
                     attack(enemy_object_list[target], player.attack_strength)
                     attack_timer.start()
                     player.acted = True
-                elif player.action == "Defend":
-                    player.defense += player.armor
+                elif player.action == "Block":
+                    player.armor += player.defense
+                    attack_timer.start()
                     player.acted = True
                 elif player.action == "Spell":
-                    print("did it")
-                    #display spell menu logic
                     menu_state = "Spells"
                 elif player.action == "Back":
                     menu_state = "Menu"
+                    attack_timer.start()
+                    player.acted = True
                 elif player.action == "Meteor":
-                    pass
+                    print("Meated on losa")
+                    print(player.attack_strength//2)
+                    attack(enemy_object_list[target], player.attack_strength//2-1)
+                    burn(enemy_object_list[target], player.attack_strength//4+1, 3)
+                    attack_timer.start()
+                    player.acted = True
                 elif player.action == "Bolt":
+                    print("bolted loser")
+                    enemy_object_list[target].armor = 0
+                    attack(enemy_object_list[target], player.attack_strength - 1)
+                    attack_timer.start()
+                    player.acted = True
+                elif player.action == "Fireball":
+                    attack(enemy_object_list[target], player.attack_strength)
+                    attack_timer.start()
+                    player.acted = True
                     pass
                     
         elif combat_turn == "Enemy":
@@ -706,21 +891,33 @@ while exit:
             print("Player hp:", player.health)
             for enemy in enemy_object_list:
                 print("Enemy hp:", enemy.health)
+                enemy.end_step()
             combat_turn = "Player"
             player.acted = False
-            menu_state = "Menu"
-        enemies_left = False
-        for enemy in enemy_object_list:
-            if enemy.visible == True:
-                enemies_left = True
-        if enemies_left == False: #cleanup step
-            player.exit_combat()
-            for enemy in room_enemy_list:
-                if enemy.visible:
-                    enemy_sprites_list.add(enemy)
-                    
+            player.action = "None"
+            player.armor = 0
+            menu_state = "Actions"
             
-            combat_state = False
+            
+            enemies_left = False
+            for enemy in enemy_object_list:
+                if enemy.visible == True:
+                    enemies_left = True
+            if enemies_left == False: #cleanup step
+                player.exit_combat()
+                for enemy in room_enemy_list:
+                    if enemy.visible:
+                        enemy_sprites_list.add(enemy)
+                combat_turn = "Start"
+                menu_sprites_list.empty()
+                enemy_health_bar.visible = False
+                player_health_bar.visible = False
+                player.max_health += 1
+                player.health = player.max_health
+                for intent in intent_list:
+                    intent.visible = False
+                combat_state = False
+                player.acted = False
 
         for enemy in enemy_object_list:
             if enemy.visible:
@@ -728,8 +925,11 @@ while exit:
         for bar in health_bar_list:
             if bar.visible:
                 enemy_sprites_list.add(bar)
+        for intent in intent_list:
+            if intent.visible:
+                intent_sprites_list.add(intent)
 
-
+    
 
     # Update exit zone dynamically based on dungeon
 
@@ -737,13 +937,16 @@ while exit:
     # Update & draw everything
     player_sprites_list.update()
     enemy_sprites_list.update()
+    intent_sprites_list.update()
     menu_sprites_list.update(events)
     animation_sprites_list.update()
 
+    
     player_sprites_list.draw(screen)
     enemy_sprites_list.draw(screen)
     menu_sprites_list.draw(screen)
     animation_sprites_list.draw(screen)
+    intent_sprites_list.draw(screen)
 
     if not combat_state:
         draw_inventory(screen, player)
@@ -754,5 +957,7 @@ while exit:
 
     for t in timers:
         t.update()
+    #if player.health <= 0:
+     #   pygame.quit()
 
 pygame.quit()

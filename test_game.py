@@ -745,8 +745,8 @@ while exit:
     menu_sprites_list.draw(screen)
     animation_sprites_list.draw(screen)
 
-if not combat_state:
-    draw_inventory(screen, player)
+    if not combat_state:
+        draw_inventory(screen, player)
 
 
     pygame.display.flip()

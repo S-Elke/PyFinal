@@ -1,16 +1,19 @@
-import random
-import pygame
+import random # used for random movement and other randomness
+import pygame # pygame runs most of the code
 
+# Declare game window size
 WIDTH = 1920
 HEIGHT = 1080
 SURFACE_COLOR = (79, 7, 26)
 
 pygame.init()
 
+# Display game window
 size = (WIDTH, HEIGHT)
 screen = pygame.display.set_mode(size)
 pygame.display.set_caption("Test Game")
 font = pygame.font.SysFont(None, 36, bold=True)
+
 # Load dungeon backgrounds
 dungeon_1 = pygame.image.load("Dungeon_1_1920x1080.png").convert()
 dungeon_3 = pygame.image.load("Dungeon_3_1920x1080.png").convert()
@@ -22,7 +25,7 @@ game_over = False
 
 exit_zone = pygame.Rect(0, 0, 0, 0)
 
-#loading sprites
+# Loading sprites
 goblin_image = pygame.image.load('goblin_final_192x192.png').convert_alpha()
 magic_goblin_image = pygame.image.load('magic_goblin_192_transparent.png').convert_alpha()
 buff_goblin_image = pygame.image.load('buff_goblin_256px_transparent.png').convert_alpha()
@@ -49,7 +52,7 @@ meteor_image = pygame.image.load('meteor_192x192_transparent_192.png').convert_a
 health_bar_image = pygame.image.load('health_bar.png')
 shield_bar_image = pygame.image.load('shield_bar.png')
 
-#functions for image maniupulation
+# Functions for image maniupulation
 def scale_image(image, scale):
     image = pygame.transform.smoothscale(image, (image.get_size()[0] * scale, image.get_size()[1] * scale))
     return image
@@ -59,7 +62,7 @@ def scale_rect(rect, scale):
     rect.y += rect[3] * (1 - scale) / 2
     return rect
 
-#scaling sprites for different purposes
+# Scaling sprites for intent images, used later
 attack_intent_image = pygame.image.load('swoosh_red_192.png').convert_alpha()
 scale_image(attack_intent_image, 0.5)
 defend_intent_image = pygame.image.load('shield_metal_fixed_192.png').convert_alpha()
@@ -71,10 +74,10 @@ scale_image(fireball_intent_image, 0.5)
 meteor_intent_image = pygame.image.load('meteor_192x192_transparent_192.png').convert_alpha()
 scale_image(meteor_intent_image, 0.5)
 
-
-
-
-#animations handler
+# Animation class
+# pos = position
+# type = which animation to display
+# type options : {"lighting", "fireball", "meteor", "swoosh_gray", "swoosh_blue", "swoosh_red", "wood_shield", "metal_shield", "magic_shield"}
 class Animations(pygame.sprite.Sprite):
     def __init__(self, pos, type):
         super().__init__()
@@ -213,7 +216,9 @@ class Animations(pygame.sprite.Sprite):
         self.image = self.animation_type[int(self.current_sprite)]
 
 
-
+# player class, only used once
+# pos = position in game
+# image = player sprite
 class Player(pygame.sprite.Sprite):
     def __init__(self, pos, image):
         super().__init__()
@@ -323,6 +328,9 @@ class Player(pygame.sprite.Sprite):
         self.rect = self.position
         pass
 
+# used for images that dont move, dont interact
+# image = loaded image to display
+# pos = in game position
 class still_image(pygame.sprite.Sprite):
     def __init__(self, image, pos):
         super().__init__()
@@ -330,10 +338,14 @@ class still_image(pygame.sprite.Sprite):
         self.image = image
         self.rect = self.image.get_rect(center=pos)
 
+# list and group for storing and displaying intents
 intent_sprites_list = pygame.sprite.Group()
 intent_list = []
 
+# where all intents are displayed
 intent_location = (315,435)
+
+# create the sprite images for intent
 attack_intent_icon = still_image(attack_intent_image, intent_location)
 intent_list.append(attack_intent_icon)
 
@@ -349,6 +361,9 @@ intent_list.append(fireball_intent_icon)
 meteor_intent_icon = still_image(meteor_intent_image, intent_location)
 intent_list.append(meteor_intent_icon)
 
+# Instantiable class for tracking health
+# image = single pixel in color of bar
+# parent = owner of health bar
 class health_bar(pygame.sprite.Sprite):
     def __init__(self, image, parent):
         super().__init__()
@@ -366,6 +381,9 @@ class health_bar(pygame.sprite.Sprite):
             self.rect.width = self.parent.rect.width * self.parent.health / self.parent.max_health
             self.image = pygame.transform.smoothscale(self.image, (self.parent.rect.width * self.parent.health / self.parent.max_health, 10))
 
+# Instantiable class for tracking armor
+# image = single pixel in color of bar
+# parent = owner of shield bar
 class shield_bar(pygame.sprite.Sprite):
     def __init__(self, image, parent):
         super().__init__()
@@ -387,10 +405,13 @@ class shield_bar(pygame.sprite.Sprite):
         
         
 
-
+# list for storing timers
 timers = []
 
-
+# instantiable class for tracking time and calling functions
+# duration = length of timer in seconds
+# callback = function called on timer end
+# start = whether or not to start the timer upon creation
 class timer():
     def __init__(self, duration, callback, start=False):
         super().__init__()
@@ -418,7 +439,9 @@ class timer():
         self.timing = False
     
 
-
+# Instantiable class for enemy actions
+# intent = loaded image for intent
+# action = action function, no arguments
 class Action:
     def __init__(self, intent_icon, action):
         self.intent = intent_icon
@@ -514,11 +537,6 @@ def boss_defend_function():
 boss_defend = Action(defend_intent_icon, boss_defend_function)
 
 
-
-# goblin_attack = attack(player,
-# attack = Action()
-
-
 # Enemy class takes 3 arguments to initialize
 # pos = position of enemy on the map
 # image = sprite
@@ -540,7 +558,7 @@ class Enemy(pygame.sprite.Sprite):
 
     def flip_sprite(self):
         self.image = pygame.transform.flip(self.image, True, False)
-
+    
     def movement(self, end_pos_x, end_pos_y, increments):
         if (((self.rect.x < end_pos_x) and (self.rect.y < end_pos_y)) and (increments % 5 == 0)):
             up_down = random.randint(1, 2)
@@ -585,7 +603,11 @@ class Enemy(pygame.sprite.Sprite):
 
 
 
-
+# Instantiable class for buttons
+# pos = position in game
+# image = loaded sprite
+# callback = function that calls when pressed
+# clickable = Whether or not this button should give feedback when pressed
 class Interactable(pygame.sprite.Sprite):
     def __init__(self, pos, image, callback, clickable=True):
         super().__init__()
@@ -613,46 +635,43 @@ class Interactable(pygame.sprite.Sprite):
                         self.rect = scale_rect(self.rect, 0.5)
                         self.pressed = True
 
-
-
-
-
+# Instantiable class for terrain
+# pos = position in game
+# image = loaded sprite
 class Terrain(pygame.sprite.Sprite):
     def __init__(self, pos, image):
         super().__init__()
         self.image = image
         self.rect = self.image.get_rect(center=pos)
 
-
+# This is here for Interactible instances that need a function but do nothing
 def on_click():
-    ''
+    pass
 
-
+# Set room to its starting state, positioning player at a spawn point
 def reset_room():
     global enemies_remaining, room_complete
-    enemies_remaining = 3
     room_complete = False
     player.rect.x, player.rect.y = 200, 300
 
-
+# These groups are updated each frame
 player_sprites_list = pygame.sprite.Group()
 enemy_sprites_list = pygame.sprite.Group()
 menu_sprites_list = pygame.sprite.Group()
 animation_sprites_list = pygame.sprite.Group()
 
+# Initialize player
 player = Player((150, 600), player_image)
-player.flip_sprite()
-exit_zone = pygame.Rect(WIDTH // 2 - 50, 0, 100, 50)
+player.flip_sprite() # Player spawns in backwards by default
 
-# callable enemy attacks
-
-
+# Example enemies instantiated from enemy class
 goblin = Enemy((225, 250), goblin_image, [goblin_attack, goblin_defend])
 goblin2 = Enemy((450,700), goblin_image, [goblin_attack, goblin_defend])
 buff_goblin = Enemy((1500, 600), buff_goblin_image, [brute_empower, brute_attack, brute_attack], health = 42)
 boss_goblin = Enemy((1500,600), boss, [boss_attack, boss_attack, boss_bolt, boss_defend], health = 40)
 magicGoblin = Enemy((825,350), magic_goblin_image, [mage_fireball, mage_bolt], health = 20)
 
+# Menu buttons instantiated from Interactable class
 menu_bar = Interactable((1675, 300), menu_image, on_click, clickable=False)
 attack_button = Interactable((1675, 150), attack_button_image, player.attack)
 spell_button = Interactable((1675, 300), spell_button_image, player.spell)
@@ -662,44 +681,25 @@ meteor_button = Interactable((1675, 150), meteor_button_image, player.meteor)
 bolt_button = Interactable((1675, 300), bolt_button_image, player.bolt)
 fireball_button = Interactable((1675, 450), fireball_button_image, player.fireball)
 
+# Player always has these spells in the demo
 player.spells.append(meteor_button)
 player.spells.append(bolt_button)
 player.spells.append(fireball_button)
 
-
+# Add enemies to room
 room_enemy_list = []
 player_sprites_list.add(player)
-#room_enemy_list.append(goblin)
-#room_enemy_list.append(goblin2)
+room_enemy_list.append(goblin)
+room_enemy_list.append(goblin2)
 room_enemy_list.append(magicGoblin)
-#room_enemy_list.append(buff_goblin)
+room_enemy_list.append(buff_goblin)
 
 for enemy in room_enemy_list:
     enemy_sprites_list.add(enemy)
 
 
-# contains enemies in current combat as a list of objects
-enemy_object_list = []
-
-exit = True
-combat_state = False
-clock = pygame.time.Clock()
-combat_turn = "Start"
-enemies_remaining = 3
-last_direction_key = pygame.K_0
-speed_boost = 1.15
-health_bar_list = []
-menu_state = "Actions"
-
-
-
-
-
-def end_player_turn():
-    global combat_turn
-    if combat_turn == "Player":
-        combat_turn = "Enemy"
-
+# This allows the player to get stronger with their inventory
+# This solution works when there is only one of each item
 def use_inventory(item, player):
     if item == "Sword" and not player.has_sword:
         player.attack_strength += 5
@@ -719,6 +719,7 @@ def use_inventory(item, player):
                 print(f"Learned {spell} spell.")
                 break
 
+# Draw inventory called every frame if player opens their inventory
 def draw_inventory(screen, player):
     x, y = 25, 25  # Inventory HUD position
     for item, count in player.inventory.items():
@@ -726,10 +727,27 @@ def draw_inventory(screen, player):
         screen.blit(text, (x, y))
         x += 200
 
-room_complete = True
+# This timer runs after the player acts
+def end_player_turn():
+    global combat_turn
+    if combat_turn == "Player":
+        combat_turn = "Enemy"
 
 attack_timer = timer(2, end_player_turn)
 
+# Initialize values for gameplay loop
+enemy_object_list = [] # Contains enemy objects
+exit = True # If False: exit game
+combat_state = False # Not in combat
+clock = pygame.time.Clock() # Track game time - different from timers
+combat_turn = "Start" # Combat starts with this turn
+last_direction_key = pygame.K_0 # Needs to be initialized to avoid an error
+speed_boost = 1.15 # Allows to modulate player speed
+health_bar_list = [] # Contains health bars
+menu_state = "Actions" # Controls menu state
+
+
+# Game logic is contained within this while loop
 while exit:
     events = pygame.event.get()
     for event in events:
@@ -750,11 +768,16 @@ while exit:
     # Background draw (first!)
     screen.blit(dungeon_images[current_dungeon], (0, 0))
 
+
+
+    # Free roam state
     if combat_state == False:
+        
+        # Add enemy sprites
         for each in enemy_sprites_list:
             enemy_object_list.append(each)
-            
 
+        # Set exit zone
         if current_dungeon == 0:
             exit_zone = pygame.Rect(852, 66, 192, 192)  # Top-middle
         elif current_dungeon == 1:
@@ -775,10 +798,11 @@ while exit:
                 if current_dungeon == 2:
                     current_dungeon = 1
                     enemy_sprites_list.empty()
-                    #animaiton shtuff
                     exit = False
                 else:
                     reset_room()
+
+        # Check if player has met requirements to exit the room
         count = 0
         for enemy in enemy_object_list:
             if(enemy.visible == False):
@@ -789,13 +813,16 @@ while exit:
             combat_state = False
             room_complete = True
 
+        # Get user inputs
         keys = pygame.key.get_pressed()
 
+        # This code went unused. It would control enemy movement, but felt unfinished, and unnecessary
         #goblin.movement(random.randint(1, 1800), random.randint(1, 1000), pygame.time.get_ticks())
         #buff_goblin.movement(random.randint(1, 1800), random.randint(1, 1000), pygame.time.get_ticks())
         #magicGoblin.movement(random.randint(1, 1800), random.randint(1, 1000), pygame.time.get_ticks())
         #boss.movement(random.randint(1, 1800), random.randint(1, 1000), pygame.time.get_ticks())
 
+        # Allows player movement, controlled by WASD
         if keys[pygame.K_a]:
             player.moveLeft(8.5 * speed_boost)
             if (last_direction_key != pygame.K_a):
@@ -812,9 +839,12 @@ while exit:
         if keys[pygame.K_w]:
             player.moveBack(8.5 * speed_boost)
 
+        # Check for collisions with enemies. 
         for each in enemy_sprites_list.sprites():
             if ((each.rect.x - 50 < player.rect.x < each.rect.x + 50) and (
                     each.rect.y - 50 < player.rect.y < each.rect.y + 50)):
+
+                # If there is a collision, prepare for combat
                 enemy_sprites_list.empty()
                 enemy_sprites_list.add(each)
                 enemy_object_list.clear()
@@ -823,161 +853,206 @@ while exit:
                     player.flip_sprite()
                 combat_state = True
 
+
+    # Combat state
     if combat_state == True:
+        # Set background
         screen.blit(combat_background, (0,0))
+
+        # Reset sprites list so that if items have been removed they will not stay in the list
         intent_sprites_list.empty()
         menu_sprites_list.empty()
+        enemy_sprites_list.empty()
+
+        # Add menu bar
         menu_sprites_list.add(menu_bar)
+
+        # Add action or spell buttons based on menu state
         if menu_state == "Actions":
-            
             menu_sprites_list.add(attack_button)
             menu_sprites_list.add(spell_button)
             menu_sprites_list.add(shield_button)
         elif menu_state == "Spells":
-            #menu_sprites_list.add(menu_button)
             for spell in player.spells:
                 menu_sprites_list.add(spell)
-                #placement logic? if only 2 can skip
-        enemy_sprites_list.empty()
-        
-                
 
-        if combat_turn == "Start":
-            player.enter_combat()
+        # Combat loop logic
+        if combat_turn == "Start": # Run once on entering combat
+            # Update player for combat
+            player.enter_combat() 
+
+            # Set enemy and player health bars on entering combat and prepare enemy for first attack
             for enemy in enemy_object_list:
                 enemy.intent(player)
                 enemy.enter_combat()
                 enemy_health_bar = health_bar(health_bar_image, enemy)
-                player_health_bar = health_bar(health_bar_image, player)
                 health_bar_list.append(enemy_health_bar)
-                health_bar_list.append(player_health_bar)
                 enemy_shield_bar = shield_bar(shield_bar_image, enemy)
-                player_shield_bar = shield_bar(shield_bar_image, player)
                 health_bar_list.append(enemy_shield_bar)
-                health_bar_list.append(player_shield_bar)
+            
+            # Add player health bars
+            player_health_bar = health_bar(health_bar_image, player)
+            health_bar_list.append(player_health_bar)
+            player_shield_bar = shield_bar(shield_bar_image, player)
+            health_bar_list.append(player_shield_bar)
+
+            # Set the combat turn to await the player's action
             combat_turn = "Player"
+
+        
+
+        # Await the player's action. The buttons update player.action, and the action is executed here
         elif combat_turn == "Player":
-            if player.acted == False:
+            if player.acted == False: # Checks so the player can only act once per turn
+                
+                # This is for targeting if there are multiple enemies. This does nothing in the demo
                 if player.action == "None":
                     target = 0
                     if keys[pygame.K_d]:
                         target = (target + 1) % len(enemy_object_list)
                     elif keys[pygame.K_a]:
                         target = (target - 1) % len(enemy_object_list)
+
+                # Damage enemy on attack
                 elif player.action == "Attack":
                     attack(enemy_object_list[target], player.attack_strength)
-                    attack_timer.start()
+                    attack_timer.start() # Gives time for the animation after the player clicks attack
                     player.acted = True
+
+                # Add armor to the player
                 elif player.action == "Block":
                     player.armor += player.defense
                     attack_timer.start()
                     player.acted = True
+
+                # Switch to the spell menu
                 elif player.action == "Spell":
                     menu_state = "Spells"
+
+                # If the player decides not to cas ta spell. This does nothing in the demo
                 elif player.action == "Back":
                     menu_state = "Menu"
                     attack_timer.start()
                     player.acted = True
+
+                # Meteor damages the enemy slightly over time.
                 elif player.action == "Meteor":
                     print(player.attack_strength//2)
                     attack(enemy_object_list[target], player.attack_strength//2-1)
-                    burn(enemy_object_list[target], player.attack_strength//4+1, 3)
+                    burn(enemy_object_list[target], player.attack_strength//4+1, 3) # Burn damage is handled in the enemy object update
                     attack_timer.start()
                     player.acted = True
+
+                # Bolt deals less damage than attack but breaks armor
                 elif player.action == "Bolt":
                     enemy_object_list[target].armor = 0
                     attack(enemy_object_list[target], player.attack_strength - 1)
                     attack_timer.start()
                     player.acted = True
+
+                # Fireball is another attack
                 elif player.action == "Fireball":
                     attack(enemy_object_list[target], player.attack_strength)
                     attack_timer.start()
                     player.acted = True
                     pass
-                    
+
+        # Update enemies, enemies act, and enemies plan for their next turn.
         elif combat_turn == "Enemy":
             for enemy in enemy_object_list:
                 enemy.armor = 0
-                enemy.act(player)
-                enemy.intent(player)
+                enemy.act(player) # Action
+                enemy.intent(player) # New intent
                 combat_turn = "End Step"
-        elif combat_turn == "End Step": #each turn
-            print("Player hp:", player.health)
+
+        # Cleans up combat after each turn
+        elif combat_turn == "End Step": 
             for enemy in enemy_object_list:
-                print("Enemy hp:", enemy.health)
                 enemy.end_step()
+
+            # Reset player actions so they can act again
             combat_turn = "Player"
             player.acted = False
             player.action = "None"
-            
-            print("shield Rect:", player_shield_bar.rect)
-            print("Health rect:", player_health_bar.rect)
-            player.armor = 0
+
+            # Returns to basic menu
             menu_state = "Actions"
-            
-            
-            
+
+            # Player armor dissapears every turn
+            player.armor = 0
+
+            # Checks if enemies have 0 health, at which point their visible property would be false
             enemies_left = False
             for enemy in enemy_object_list:
                 if enemy.visible == True:
                     enemies_left = True
-            if enemies_left == False: #cleanup step
+
+            # Cleans up combat to return to the dungeon
+            if enemies_left == False:
                 player.exit_combat()
+                # Adds living enemies to dungeon
                 for enemy in room_enemy_list:
                     if enemy.visible:
                         enemy_sprites_list.add(enemy)
+
+                # Resets for next combat
                 combat_turn = "Start"
                 menu_sprites_list.empty()
+
+                # Deletes health bar and hides combat sprites
                 for bar in health_bar_list:
                     bar.visible == False
-                player.max_health += 1
-                player.health = player.max_health
                 for intent in intent_list:
                     intent.visible = False
-                combat_state = False
-                player.acted = False
 
+                # Player gets stronger each combat, and heals
+                player.max_health += 1
+                player.health = player.max_health
+
+                # Finally, exit combat
+                combat_state = False
+
+        # Adds enemy sprites and health bar if they are alive
         for enemy in enemy_object_list:
             if enemy.visible:
                 enemy_sprites_list.add(enemy)
         for bar in health_bar_list:
             bar.update()
             if bar.visible:
-                
                 enemy_sprites_list.add(bar)
         for intent in intent_list:
             if intent.visible:
                 intent_sprites_list.add(intent)
 
     
-
-    # Update exit zone dynamically based on dungeon
-
-
-    # Update & draw everything
+    # Update each object in each sprites list 
     player_sprites_list.update()
     enemy_sprites_list.update()
     intent_sprites_list.update()
     menu_sprites_list.update(events)
     animation_sprites_list.update()
 
-    
+    # Draw each sprite in each sprites list
     player_sprites_list.draw(screen)
     enemy_sprites_list.draw(screen)
     menu_sprites_list.draw(screen)
     animation_sprites_list.draw(screen)
     intent_sprites_list.draw(screen)
-
+    
+    # Draw player inventory if open
     if not combat_state:
         draw_inventory(screen, player)
 
-
+    ###
     pygame.display.flip()
     clock.tick(60)
 
+    # Update timers to check if they ended every tick
     for t in timers:
         t.update()
-    #if player.health <= 0:
-     #   pygame.quit()
+
+    # End game if player dies
+    if player.health <= 0:
+       pygame.quit()
 
 pygame.quit()

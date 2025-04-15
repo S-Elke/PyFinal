@@ -1053,6 +1053,6 @@ while exit:
 
     # End game if player dies
     if player.health <= 0:
-       pygame.quit()
+       exit = False
 
 pygame.quit()
